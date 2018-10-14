@@ -1,0 +1,25 @@
+{
+    "code":0,
+    "msg":"操作成功！",
+    "total":20,
+    "data": {
+        "id|+1":1,
+        "num": "RegExp_\\d{5,10}",
+        "array|3": [
+            "Mock.js"
+        ],
+        "object|2": {
+            "310000": "上海市",
+            "320000": "江苏省",
+            "330000": "浙江省",
+            "340000": "安徽省"
+        },
+        "cparagraph": "@cparagraph",
+        "name": "leason",
+        "items|1-5": [{
+            "id|+1": 1,
+            "type|1": [0,1],
+            "name": "RegExp_\\d{5,10}"
+        }]
+    }
+}

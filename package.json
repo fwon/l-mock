@@ -1,0 +1,26 @@
+{
+  "name": "local-mock",
+  "version": "1.0.0",
+  "description": "The easiest way to mock data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "local-mock": "./bin/index.js",
+    "lmock": "./bin/index.js"
+  },
+  "author": "fwon",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "chalk": "^2.4.1",
+    "express": "^4.16.4",
+    "http-proxy-middleware": "^0.19.0",
+    "mockjs": "^1.0.1-beta3",
+    "multer": "^1.4.1",
+    "nodemon": "^1.18.4",
+    "ora": "^3.0.0",
+    "supervisor": "^0.12.0"
+  }
+}
