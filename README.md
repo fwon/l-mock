@@ -46,7 +46,7 @@ lmock start
 |url|请求api|
 |method|get/post/put/delete|
 |contentType|当方法为`post`且请求类型为`multipart/form-data`时，需配置该参数|
-|result|**JSON:**直接配置静态/动态数据，动态数据的配置可参考 [Mockjs](http://mockjs.com/examples.html)<br>**Function:**支持返回一个方法，你可以读取请求参数进行一些判断, 并返回自定义内容，支持Mock和文件读取|
+|result|**JSON**直接配置静态/动态数据，动态数据的配置可参考 [Mockjs](http://mockjs.com/examples.html)<br>**Function**支持返回一个方法，你可以读取请求参数进行一些判断, 并返回自定义内容，支持Mock和文件读取|
 
 
 ## 例子
