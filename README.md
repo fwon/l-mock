@@ -43,7 +43,7 @@ lmock start
 
 | Params | Value | Description |
 |--------|-------|-------------|
-|url|/xx|请求api|
+|url|/xx|请求api, 支持正则的[匹配模式](https://expressjs.com/en/4x/api.html#path-examples)|
 |method|get/post/put/delete|请求方法|
 |contentType|`multipart/form-data`|**可选** 当方法为`post`且请求类型为`multipart/form-data`时，需配置该参数|
 |test|http://test/api/1|**可选** 将请求代理到测试地址，当配置product时，优先代理product |
@@ -121,7 +121,7 @@ module.exports = {
 修改package.json中的scripts
 ```
 "scripts": {
-  "mock": "lmock start",
+  "mock": "cd mock && lmock start",
 }
 ```
 运行时执行 `npm run mock`
