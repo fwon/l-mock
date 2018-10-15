@@ -1,6 +1,7 @@
 {
   "name": "l-mock",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "keywords": "mock local-mock mockjs",
   "description": "The easiest way to mock data",
   "main": "index.js",
   "scripts": {

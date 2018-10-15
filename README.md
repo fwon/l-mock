@@ -41,12 +41,14 @@ lmock start
 
 ## 使用说明
 
-| Params | Description |
-|--------|-------------|
-|url|请求api|
-|method|get/post/put/delete|
-|contentType|当方法为`post`且请求类型为`multipart/form-data`时，需配置该参数|
-|result|**JSON**直接配置静态/动态数据，动态数据的配置可参考 [Mockjs](http://mockjs.com/examples.html)<br>**Function**支持返回一个方法，你可以读取请求参数进行一些判断, 并返回自定义内容，支持Mock和文件读取|
+| Params | Value | Description |
+|--------|-------|-------------|
+|url|/xx|请求api|
+|method|get/post/put/delete|请求方法|
+|contentType|`multipart/form-data`|**可选** 当方法为`post`且请求类型为`multipart/form-data`时，需配置该参数|
+|test|http://test/api/1|**可选** 将请求代理到测试地址，当配置product时，优先代理product |
+|product|http://prod/api/1|**可选** 将请求代理到正式地址 |
+|result|JSON/Function|**JSON** 直接配置静态/动态数据，动态数据的配置可参考 [Mockjs](http://mockjs.com/examples.html)<br>**Function** 支持返回一个方法，你可以读取请求参数进行一些判断, 并返回自定义内容，支持Mock和文件读取|
 
 
 ## 例子
