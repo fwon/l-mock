@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const cors = require('cors')
 const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
 const bodyParser = require('body-parser')
@@ -20,6 +21,7 @@ if (args.length) {
   return;
 }
 
+app.use(cors())
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(function (req, res, next) {
