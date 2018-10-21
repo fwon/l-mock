@@ -19,9 +19,9 @@ function start (mockDir, port) {
   }
 
   nodemon(options).on('start', function () {
-    console.log('Just-Mock Started!')
+    console.log('l-Mock Started Successfully!')
   }).on('quit', function () {
-    console.log('Just-Mock Quit!')
+    console.log('l-Mock Quit!')
     process.exit()
   })
 }

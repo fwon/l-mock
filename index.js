@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
+const chalk = require('chalk');
 const cors = require('cors')
 const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
@@ -21,7 +22,12 @@ if (args.length) {
   return;
 }
 
-app.use(cors())
+// 跨域请求
+app.use(cors({
+  origin: true, // Access-Control-Allow-Origin 为请求页面
+  credentials: true,  // 运行上传cookie
+  // preflightContinue: true // OPTIONS请求
+}))
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(function (req, res, next) {
@@ -35,12 +41,18 @@ app.use(function (req, res, next) {
 
 function mockFile (filePath) {
   const mock = require(filePath)
-  const method = mock.method.toLocaleLowerCase()
+  const dataType = mock.dataType
   const target = mock.product || mock.test
+  let method = mock.method && mock.method.toLowerCase() || 'get'
   let callback = null
+
+  if (dataType === 'jsonp') {
+    method = 'get'
+  }
 
   // 启动代理
   if (target) {
+    console.log(`Api ${chalk.yellow(mock.url)} use proxy ${chalk.yellow(target)}`);
     callback = proxyMiddleware({
       target: target, 
       changeOrigin: true
@@ -52,7 +64,12 @@ function mockFile (filePath) {
   } else {
     callback = function (req, res) {
       let data = Mock.mock(mock.result)
-      res.send(data)
+      if (dataType === 'jsonp') {
+        let jsonpCallbackName = req.query.callback || 'callback'
+        res.send(jsonpCallbackName + '(' + JSON.stringify(data) + ')')
+      } else {
+        res.send(data)  
+      }
     }
   }
 
@@ -81,5 +98,5 @@ function mockFile (filePath) {
 })(mockDir)
 
 app.listen(port, function () {
-  console.log(`Mocking data on ${mockDir}, Server port ${port}`)
+  console.log("Mocking Api on " + `${chalk.yellow(mockDir)}` + "\nAPI host is " + `${chalk.yellow("http://localhost:" + port)}`)
 })

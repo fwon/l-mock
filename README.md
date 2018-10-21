@@ -1,4 +1,6 @@
 # l-mock
+## 说明
+一个用命令行解决接口Mock的工具，使用简单，支持XHR, Fetch。
 
 ## 安装
 ```
@@ -45,6 +47,7 @@ lmock start
 |--------|-------|-------------|
 |url|/xx|请求api, 支持正则的[匹配模式](https://expressjs.com/en/4x/api.html#path-examples)|
 |method|get/post/put/delete|请求方法|
+|dataType|jsonp|**可选** 当请求为jsonp时需配置该项，仅当result为JSON时生效，为function时要自己处理返回|
 |contentType|`multipart/form-data`|**可选** 当方法为`post`且请求类型为`multipart/form-data`时，需配置该参数|
 |test|http://test/api/1|**可选** 将请求代理到测试地址，当配置product时，优先代理product |
 |product|http://prod/api/1|**可选** 将请求代理到正式地址 |
@@ -62,6 +65,27 @@ lmock start
 module.exports = {
   url: '/a',
   method: 'get',
+  result: {
+    'status|1': ["no_login", "OK", "error", "not_registered", "account_reviewing"],
+    'msg': '@csentence()',
+    'data': {
+      a: 2
+    }
+  }
+}
+```
+
+### 2. 返回JSONP格式数据
+
+```javascript
+/*
+  返回简单的json数据，变量语法可参考 http://mockjs.com/examples.html
+ */
+
+module.exports = {
+  url: '/a',
+  method: 'get',
+  dataType: 'jsonp',
   result: {
     'status|1': ["no_login", "OK", "error", "not_registered", "account_reviewing"],
     'msg': '@csentence()',
@@ -125,12 +149,6 @@ module.exports = {
 }
 ```
 运行时执行 `npm run mock`
-
-### TODO
-fetch
-
-jsonp
-
 
 ### License
 [MIT](http://opensource.org/licenses/MIT)

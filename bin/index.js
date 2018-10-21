@@ -1,23 +1,31 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
+const info = require('../package.json')
+const chalk = require('chalk')
 const cmdStart = require('../cmd/start')
 const cmdAdd = require('../cmd/add')
 const cmdInit = require('../cmd/init')
 const mockDir = process.cwd()
 const COMMANDS = [
+  ['lmock --help|-h', '[List all commands]'],
+  ['lmock --version|-v', '[lmock version]'],
   ['lmock init (--dir)', '[Init mock data directory and demo use case, --name is optional]'],
-  ['lmock start (--port)', '[Start mock server, --port is optional]']
+  ['lmock start (--port)', '[Start mock server, Please run in the mock data directory. --port is optional]']
 ]
 
 const runCommand = (commands, options = []) => {
   const command = commands[0]
   const args = commands.join('|');
-  if (command === 'help') {
+  if (command === '--help' || command === '-h') {
     console.log('*******************Local-Mock Commands*******************')
     COMMANDS.forEach(item => console.log(`${chalk.blue.bold(item[0])} ${item[1]}`))
     process.exit(0)
   }
+
+  if (command === '--version' || command === '-v') {
+    console.log(info.version);
+    process.exit(0)
+  } 
 
   if (command) {
     switch (command) {
