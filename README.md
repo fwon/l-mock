@@ -142,6 +142,10 @@ module.exports = {
 ```
 
 ## 项目快速配置
+工具也可以只安装在项目中作为开发依赖，不用全局安装
+```
+npm i l-mock --save-dev
+```
 修改package.json中的scripts
 ```
 "scripts": {
