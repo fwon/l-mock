@@ -1,6 +1,6 @@
 {
   "name": "l-mock",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "keywords": "mock local-mock mockjs",
   "description": "The easiest way to mock data",
   "homepage": "https://github.com/fwon/l-mock.git",
