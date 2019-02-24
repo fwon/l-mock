@@ -6,7 +6,7 @@ const path = require('path')
 const nodemon = require('nodemon')
 
 function start (mockDir, port) {
-  const entry = path.join(__dirname, '../index.js')
+  const entry = path.join(__dirname, '../server.js')
   const options = {
     script: entry,
     restartable: 're',

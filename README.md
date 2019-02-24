@@ -154,5 +154,17 @@ npm i l-mock --save-dev
 ```
 运行时执行 `npm run mock`
 
+## API用法
+除了用命令行模式开启服务，还可通过与工程脚本配合，用代码启动服务
+```javascript
+const path = require('path')
+const lmock = require('l-mock');
+const mockDir = path.resolve('./mock/')
+const port = 4000
+
+lmock.start(mockDir, port)
+
+```
+
 ### License
 [MIT](http://opensource.org/licenses/MIT)
