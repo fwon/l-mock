@@ -7,16 +7,18 @@ const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
 const bodyParser = require('body-parser')
 const multer = require('multer')
+const dirTree = require('directory-tree')
 const upload = multer() // for parsing multipart/form-data
 const app = express()
 const supportExtension = ['.js']
 
 const args = process.argv.slice(2)
-let mockDir = port = null
+let mockDir = port = ui = null
 
 if (args.length) {
   mockDir = args[0]
   port = args[1]
+  ui = args[2]
 } else {
   console.log('Please run [lmock start] in mock directory')
   return;
@@ -38,6 +40,33 @@ app.use(function (req, res, next) {
   }
   next()
 })
+
+// 启动UI界面
+if (ui) {
+  // static
+  app.use('/ui', express.static(path.join(__dirname, 'ui')));
+  app.set('views', __dirname + '/ui');
+  app.set('view engine', 'ejs');
+  app.get('/ui', function(req, res) {
+    res.render('index', {PORT: port});
+  });
+
+  // api
+  app.get('/ui/directory', function(req, res) {
+    const directory = dirTree(mockDir)
+    res.send({dir: directory});
+  })
+  app.get('/ui/file', function(req, res) {
+    const path = req.query.path
+    if (path && fs.existsSync(path)) {
+      const content = fs.readFileSync(path, 'utf8');
+      const apiMap = require(path);
+      res.send({content: content, api: apiMap});
+    } else {
+      res.send({status: '404'})
+    }
+  })
+}
 
 function mockFile (filePath) {
   const mock = require(filePath)
