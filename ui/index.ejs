@@ -19,11 +19,11 @@
     <link rel="stylesheet" href="src/codem/addon/fold/foldgutter.css" />
     <link rel="stylesheet" href="src/codem/addon/scroll/simplescrollbars.css" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="src/editor/lib/material-design-icons.css"> -->
+    <link href="src/editor/lib/vuetify.min.css" rel="stylesheet">
     <link rel="stylesheet" href="src/editor/editor.css">
 </head>
 <body>
+  
   <div id="lm_container" class="lm-ui">
     <div id="lm_editor_folder" class="lm-ui-col lm-ui-folder">
       <div id="lm_folder">
@@ -51,10 +51,18 @@
         @blur="onCmBlur($event)"
         @focus="onCmFocus($event)"
         @ready="onCmReady($event)"
+        @changes="onChange($event)"
       ></codemirror>
     </div>
     <div id="lm_editor_resize2" class="lm-drag-bar"></div>
     <div id="lm_editor_result" class="lm-ui-col lm-ui-result">
+      <div class="lm_result_progress" v-if="loadingResult">
+        <v-progress-linear
+          indeterminate
+          color="#1867c0"
+        ></v-progress-linear>
+      </div>  
+      <!-- <i class="lm-ui-result-loading mdi mdi-reload" v-if="loadingResult"></i> -->
       <codemirror
         class="lm-editor"
         ref="res_cm"
@@ -63,9 +71,9 @@
       ></codemirror>
     </div>
   </div>
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="src/editor/lib/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+  <script src="src/editor/lib/vue.js"></script>
+  <script src="src/editor/lib/vuetify.js"></script>
   <script src="src/editor/lib/vue-codemirror.js"></script>
   <script type="text/x-template" id="item-template">
     <li>
@@ -106,6 +114,7 @@
   <script>
     const __PORT__ = "<%= PORT %>"
   </script>
+  <script src="src/editor/lib/utils.js"></script>
   <script src="src/editor/lib/mock-snippets.js"></script>
   <script src="src/editor/editor.js"></script>
 </body>

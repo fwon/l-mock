@@ -57,10 +57,22 @@ td, th {
   font-size: 16px;
 }
 .lm-ui-editor {
-  width: 800px;
+  width: calc((100% - 200px) / 2);
   overflow-y: auto;
 }
 .lm-ui-result {
+  position: relative;
+  width: calc((100% - 200px) / 2);
+}
+.lm-ui-result-loading {
+  position: absolute;
+  top: 5px;
+  left: 50px;
+  z-index: 99;
+}
+.lm-ui-result-loading::before {
+  transform-origin: center center;
+  animation: rotater 0.5s infinite linear;
 }
 .lm-editor {
   height: 100%;
@@ -71,6 +83,15 @@ td, th {
   cursor: ew-resize;
   /* background-color: rgba(0,0,0,.54); */
 }
+@keyframes rotater {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 
 /* 目录 */
 .tree-list {
@@ -113,6 +134,11 @@ td, th {
   background-color: rgb(238,238,238, 0.5);
 }
 .item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 .item-folder-list {
   padding-left: 22px;
@@ -127,4 +153,19 @@ td, th {
 .mdi-folder, .mdi-folder-open {
   /* font-size: 22px; */
   /* margin-right: 6px; */
+}
+
+.lm_result_progress {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 100%;
+  z-index: 9;
+  height: 5px;
+}
+.v-progress-linear {
+}
+.cyan {
+  background-color: #00bcd4!important;
+  border-color: #00bcd4!important;
 }

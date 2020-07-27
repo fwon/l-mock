@@ -12,6 +12,7 @@ const upload = multer() // for parsing multipart/form-data
 const app = express()
 const supportExtension = ['.js']
 
+const finger = Math.round(Math.random() * 100000000).toString(16); // 进程指纹，用于区分服务是否重启
 const args = process.argv.slice(2)
 let mockDir = port = ui = null
 
@@ -58,18 +59,59 @@ if (ui) {
   })
   app.get('/ui/file', function(req, res) {
     const path = req.query.path
+    const isUpdate = req.query.update
     if (path && fs.existsSync(path)) {
       const content = fs.readFileSync(path, 'utf8');
-      const apiMap = require(path);
-      res.send({content: content, api: apiMap});
+      // 更新内容删除文件缓存
+      if (isUpdate) {
+        delete require.cache[path];
+        // 删除缓存后重新mock
+        // mockFile(path);
+      }
+      let apiMap = {}
+      try {
+        apiMap = require(path)
+      } catch(err) {
+        console.log('getFile error:')
+        console.log(err.stack.split('\n\n')[0])
+        apiMap = {
+          status: 500,
+          msg: err.stack.split('\n\n')[0]
+        }
+      }
+      res.send({content: content, api: apiMap, finger: finger});
     } else {
-      res.send({status: '404'})
+      res.send({status: 404})
+    }
+  })
+  app.post('/ui/file', function(req, res) {
+    const path = req.body.path;
+    const value = req.body.value;
+    if (path && fs.existsSync(path)) {
+      fs.writeFile(path, value, (err) => {
+        if (err) {
+          res.send({status: 500});
+          throw err
+        };
+        res.send({status: 200});
+      });
+    } else {
+      res.send({status: 404})
     }
   })
 }
 
 function mockFile (filePath) {
-  const mock = require(filePath)
+  console.log(filePath);
+  let mock = null
+  // file format error
+  try {
+    mock = require(filePath)
+  } catch(err) {
+    console.log('mock file error')
+    console.log(err)
+    return
+  }
   const dataType = mock.dataType
   const target = mock.product || mock.test
   let method = mock.method && mock.method.toLowerCase() || 'get'
@@ -97,7 +139,7 @@ function mockFile (filePath) {
         let jsonpCallbackName = req.query.callback || 'callback'
         res.send(jsonpCallbackName + '(' + JSON.stringify(data) + ')')
       } else {
-        res.send(data)  
+        res.send(data)
       }
     }
   }

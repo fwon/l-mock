@@ -1,5 +1,8 @@
 (function() {
 
+  let global_file_finger = null;
+  let input_timeout = null;
+
   // 获取目录结构
   function getDirectory() {
     return $.ajax({
@@ -9,12 +12,29 @@
   }
 
   // 获取文件内容
-  function getFile(path) {
+  function getFile(path, isUpdate) {
     return $.ajax({
       url: 'http://localhost:' + __PORT__ + '/ui/file',
       method: 'GET',
       data: {
-        path: path
+        path: path,
+        update: isUpdate
+      },
+      error: res => {
+        console.log('after getFile')
+        console.log(res)
+      }
+    })
+  }
+
+  // 更新文件内容
+  function postChange(path, value) {
+    return $.ajax({
+      url: 'http://localhost:' + __PORT__ + '/ui/file',
+      method: 'POST',
+      data: {
+        path: path,
+        value: value
       }
     })
   }
@@ -61,6 +81,9 @@
             console.log(path);
             getFile(path).done(res => {
               console.log(res);
+              global_file_finger = res.finger;
+              // 初始化代码
+              res.initialCode = true;
               if (res.content) {
                 this.$emit("update-code", res);
                 this.$emit("update-current-path", path);
@@ -82,12 +105,14 @@
 
   var demo = new Vue({
     el: "#lm_container",
+    vuetify: new Vuetify(),
     data: {
       treeData: null,
       code: "function myScript(){return 100;}",
       apiMap: {},
       jsonCode: '',
       currentPath: '',
+      loadingResult: false,
       cmOption: {
         mode:  "javascript",
         lineNumbers: true,
@@ -103,7 +128,13 @@
         gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
         foldOptions: {
           widget: this.foldWidget
-        }
+        },
+        // extraKeys: {
+        //  "Cmd-S": (instance) => { 
+        //    console.log('save file');
+        //    this.postChange()
+        //  }
+        // }
         // extraKeys: {"'@'": "autocomplete"} // 自动填充关键字
       },
       cmResultOption: {
@@ -156,9 +187,22 @@
       if (this.jsonCode) {
         this.res_cm.foldCode(CodeMirror.Pos(5, 0));
       }
+      this.initCommands();
       this.initResize();
     },
     methods: {
+      initCommands() {
+        document.onkeydown = e => {
+          var currKey = 0, e = e || event || window.event;
+          currKey = e.keyCode || e.which || e.charCode;
+          if(currKey == 83 && (e.ctrlKey || e.metaKey)){
+            e.preventDefault();
+            console.log('save file')
+            this.postChange();
+            return false;
+          }
+        }
+      },
       initResize() {
         const folder = document.getElementById("lm_editor_folder");
         const resize1 = document.getElementById("lm_editor_resize1");
@@ -242,6 +286,46 @@
       onCmFocus() {
       },
       onCmReady() {},
+      onChange() {
+        // 区分是选中文件还是修改文件
+        // if (this.initialCode) {
+        //   this.initialCode = false;
+        //   return;
+        // }
+        // clearTimeout(input_timeout);
+        // input_timeout = setTimeout(() => {
+        //   this.postChange()
+        // }, 500)
+      },
+      postChange() {
+        console.log('post Change');
+        this.loadingResult = true;
+        this.jsonCode = '';
+        const value = this.cm.getValue();
+        postChange(this.currentPath, value).done(res => {
+          if (res.status === 200) {
+            this.loopToUpdateResult();
+          }
+        });
+      },
+      loopToUpdateResult() {
+        getFile(this.currentPath, true).done(res => {
+          if (res.finger !== global_file_finger) {
+            this.loadingResult = false;
+            global_file_finger = res.finger;
+            if (res.content) {
+              this.updateCode(res);
+            } else {
+              this.jsonCode = '格式错误';
+            }
+          } else {
+            const to = setTimeout(() => {
+              clearTimeout(to);
+              this.loopToUpdateResult()
+            }, 1000);
+          }
+        })
+      },
       makeFolder(item) {
         alert('male')
         Vue.set(item, "children", []);
@@ -253,11 +337,16 @@
         });
       },
       updateCode(res) {
+        this.initialCode = res.initialCode;
         this.code = res.content;
         this.apiMap = res.api;
-        getResult(this.apiMap.url, this.apiMap.method).done(res => {
-          this.jsonCode = JSON.stringify(res, null, "\t");
-        });
+        if (this.apiMap.status === 500) {
+          this.jsonCode = this.apiMap.msg
+        } else {
+          getResult(this.apiMap.url, this.apiMap.method).done(res => {
+            this.jsonCode = JSON.stringify(res, null, "\t");
+          });
+        }
       },
       updateCurrentPath(path) {
         this.currentPath = path;
