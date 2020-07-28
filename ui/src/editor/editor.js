@@ -125,7 +125,8 @@
         styleActiveLine: true, // 当前行高亮
         scrollbarStyle: "simple",
         foldGutter: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+        lint: true,
         foldOptions: {
           widget: this.foldWidget
         },
@@ -286,7 +287,8 @@
       onCmFocus() {
       },
       onCmReady() {},
-      onChange() {
+      onChange(instance, changes) {
+        console.log(changes);
         // 区分是选中文件还是修改文件
         // if (this.initialCode) {
         //   this.initialCode = false;

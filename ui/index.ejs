@@ -3,6 +3,7 @@
 <head>
     <title></title>
     <script src="src/codem/lib/codemirror.js"></script>
+    <script src="src/editor/lib/jshint.js"></script>
     <script src="src/codem/mode/javascript/javascript.js"></script>
     <script src="src/codem/addon/hint/show-hint.js"></script>
     <script src="src/codem/addon/selection/active-line.js"></script>
@@ -13,8 +14,11 @@
     <script src="src/codem/addon/fold/indent-fold.js"></script>
     <script src="src/codem/addon/fold/brace-fold.js"></script>
     <script src="src/codem/addon/scroll/simplescrollbars.js"></script>
+    <script src="src/codem/addon/lint/lint.js"></script>
+    <script src="src/codem/addon/lint/javascript-lint.js"></script>
     <link rel="stylesheet" href="src/codem/lib/codemirror.css">
     <link rel="stylesheet" href="src/codem/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="src/codem/addon/lint/lint.css">
     <link rel="stylesheet" href="src/codem/theme/dracula.css">
     <link rel="stylesheet" href="src/codem/addon/fold/foldgutter.css" />
     <link rel="stylesheet" href="src/codem/addon/scroll/simplescrollbars.css" />
@@ -51,7 +55,7 @@
         @blur="onCmBlur($event)"
         @focus="onCmFocus($event)"
         @ready="onCmReady($event)"
-        @changes="onChange($event)"
+        @changes="onChange"
       ></codemirror>
     </div>
     <div id="lm_editor_resize2" class="lm-drag-bar"></div>
