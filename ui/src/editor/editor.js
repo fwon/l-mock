@@ -49,69 +49,31 @@
     })
   }
 
-  Vue.component("tree-item", {
-    template: "#item-template",
-    props: {
-      item: Object,
-      path: String
-    },
-    watch: {
-      path(value) {
-      }
-    },
-    data() {
-      return {
-        isOpen: false
-      };
-    },
-    computed: {
-      isFolder() {
-        return this.item.children && this.item.children.length;
-      }
-    },
-    mounted() {
-    },
-    methods: {
-      toggle() {
-        if (this.isFolder) {
-          this.isOpen = !this.isOpen;
-        } else {
-          const path = this.item.path
-          if (path) {
-            console.log(path);
-            getFile(path).done(res => {
-              console.log(res);
-              global_file_finger = res.finger;
-              // 初始化代码
-              res.initialCode = true;
-              if (res.content) {
-                this.$emit("update-code", res);
-                this.$emit("update-current-path", path);
-              }
-            })
-          }
-        }
-      },
-      makeFolder() {
-        if (!this.isFolder) {
-          this.$emit("make-folder", this.item);
-          this.isOpen = true;
-        }
-      }
-    }
-  });
-
   Vue.use(window.VueCodemirror);
 
   var demo = new Vue({
     el: "#lm_container",
     vuetify: new Vuetify(),
     data: {
-      treeData: null,
-      code: "function myScript(){return 100;}",
+      tree: [],
+      openFolder: ['mock'],
+      files: {
+        html: 'mdi-language-html5',
+        js: 'mdi-nodejs',
+        json: 'mdi-json',
+        md: 'mdi-markdown',
+        pdf: 'mdi-file-pdf',
+        png: 'mdi-file-image',
+        txt: 'mdi-file-document-outline',
+        xls: 'mdi-file-excel',
+      },
+      treeData: [],
       apiMap: {},
+      code: "",
+      baseCode: "", // 用于对比
       jsonCode: '',
       currentPath: '',
+      hasChanged: false,
       loadingResult: false,
       cmOption: {
         mode:  "javascript",
@@ -161,7 +123,9 @@
     },
     created() {
       getDirectory().done(res => {
-        this.treeData = res.dir || {};
+        console.log('directory')
+        console.log(res)
+        this.treeData = [res.dir];
       })
     },
     mounted() {
@@ -192,6 +156,20 @@
       this.initResize();
     },
     methods: {
+      openFile(item) {
+        const path = item[0];
+        getFile(path).done(res => {
+          console.log(res);
+          global_file_finger = res.finger;
+          // 初始化代码
+          res.initialCode = true;
+          if (res.content) {
+            this.baseCode = res.content;
+            this.updateCode(res);
+            this.currentPath = path;
+          }
+        })
+      },
       initCommands() {
         document.onkeydown = e => {
           var currKey = 0, e = e || event || window.event;
@@ -289,11 +267,19 @@
       onCmReady() {},
       onChange(instance, changes) {
         console.log(changes);
+        if (this.initialCode) {
+          this.initialCode = false;
+          return;
+        }
+        console.log(instance.getValue())
+        console.log(this.baseCode)
+        if(instance.getValue() !== this.baseCode) {
+          this.hasChanged = true;
+        } else {
+          this.hasChanged = false;
+        }
         // 区分是选中文件还是修改文件
-        // if (this.initialCode) {
-        //   this.initialCode = false;
-        //   return;
-        // }
+        
         // clearTimeout(input_timeout);
         // input_timeout = setTimeout(() => {
         //   this.postChange()
