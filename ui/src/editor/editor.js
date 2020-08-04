@@ -27,6 +27,21 @@
     })
   }
 
+  function createFile(path, type) {
+    return $.ajax({
+      url: 'http://localhost:' + __PORT__ + '/ui/create',
+      method: 'POST',
+      data: {
+        path: path,
+        type: type
+      },
+      error: res => {
+        console.log('after create')
+        console.log(res)
+      }
+    })
+  }
+
   // 更新文件内容
   function postChange(path, value) {
     return $.ajax({
@@ -55,12 +70,15 @@
     el: "#lm_container",
     vuetify: new Vuetify(),
     data: {
+      // v-tree
       tree: [],
       openFolder: ['mock'],
       files: {
+        file: 'mdi-file-document-outline',
+        folder: 'mdi-folder',
         html: 'mdi-language-html5',
         js: 'mdi-nodejs',
-        json: 'mdi-json',
+        json: 'mdi-code-json',
         md: 'mdi-markdown',
         pdf: 'mdi-file-pdf',
         png: 'mdi-file-image',
@@ -68,13 +86,28 @@
         xls: 'mdi-file-excel',
       },
       treeData: [],
+      // editor
       apiMap: {},
       code: "",
       baseCode: "", // 用于对比
       jsonCode: '',
+      // tag
+      currentEditFile: null, // 当前编辑的文件名
       currentPath: '',
+      currentFolder: null,
       hasChanged: false,
       loadingResult: false,
+      showAlert: false,
+      showAlertText: '',
+      showAlertType: 'warning',
+      showAlertIcon: {
+        warning: 'mdi-alert-circle-outline',
+        success: 'mdi-check-circle',
+        error: 'mdi-alert',
+        info: 'mdi-information'
+      },
+  
+      // codemirror options
       cmOption: {
         mode:  "javascript",
         lineNumbers: true,
@@ -156,8 +189,84 @@
       this.initResize();
     },
     methods: {
+      $alert(text, type) {
+        this.showAlertText = text;
+        this.showAlertType = type;
+        this.showAlert = true;
+        const to = setTimeout(() => {
+          clearTimeout(to);
+          this.showAlert = false;
+          // this.showAlertText = '';
+          // this.showAlertType = 'warning';
+        }, 3000);
+      },
+      resetCurrentEditFile(e, item) {
+        alert(11)
+        console.log(e.currentTarget.value)
+        if (e.currentTarget && e.currentTarget.value) {
+          const name = e.currentTarget.value;
+          item.name = name;
+          createFile(item.path + '/' + name, item.type).done(res => {
+            this.treeData = [res.dir];
+            console.log(res);
+          })
+        }
+        this.currentEditFile = null;
+      },
+      setCurrentEditFile(item) {
+        this.currentEditFile = item.path;
+      },
+      showCurrentFolder(item) {
+        this.currentFolder = item.path;
+      },
+      hideCurrentFolder(item) {
+        this.currentFolder = null;
+      },
+      // findInTree(children, name) {
+      //   for (let i = 0; i < children.length; i++) {
+      //     const item = children[i];
+      //     if (item.name === name) {
+
+      //     } 
+      //   }
+      // },
+      createFile(e, item) {
+        e.stopPropagation();
+        console.log(item.children)
+        item.children.unshift({
+          extension: '.file',
+          path: item.path,
+          type: 'file'
+        })
+        // const name = item.name;
+        // createFile(item.path, 'file').done(res => {
+        //   console.log(res);
+        // })
+      },
+      createFolder(e, item) {
+        e.stopPropagation();
+        console.log(item.children)
+        item.children.unshift({
+          extension: '.folder',
+          path: item.path,
+          type: '"directory"'
+        })
+        // createFile(item.path, 'folder').done(res => {
+        //   console.log(res);
+        // })
+      },
       openFile(item) {
         const path = item[0];
+        console.log(path);
+        if (path && path.indexOf('.') === -1) return; // folder
+        if (!path || path === this.currentPath) return;
+        if (path !== this.currentPath) {
+          if (this.hasChanged) {
+            this.$alert('请先保存 ' + this.currentPath.split('/').pop(), 'warning');
+            return;
+          }
+        }
+        this.loadingResult = false;
         getFile(path).done(res => {
           console.log(res);
           global_file_finger = res.finger;
@@ -176,6 +285,7 @@
           currKey = e.keyCode || e.which || e.charCode;
           if(currKey == 83 && (e.ctrlKey || e.metaKey)){
             e.preventDefault();
+            this.hasChanged = false;
             console.log('save file')
             this.postChange();
             return false;
@@ -292,6 +402,7 @@
         const value = this.cm.getValue();
         postChange(this.currentPath, value).done(res => {
           if (res.status === 200) {
+            this.$alert('保存成功', 'success');
             this.loopToUpdateResult();
           }
         });
@@ -315,7 +426,6 @@
         })
       },
       makeFolder(item) {
-        alert('male')
         Vue.set(item, "children", []);
         this.addItem(item);
       },

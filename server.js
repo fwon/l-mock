@@ -56,21 +56,21 @@ if (ui) {
   app.get('/ui/directory', function(req, res) {
     const directory = dirTree(mockDir)
     res.send({dir: directory});
-  })
+  });
   app.get('/ui/file', function(req, res) {
-    const path = req.query.path
+    const url = req.query.path
     const isUpdate = req.query.update
-    if (path && fs.existsSync(path)) {
-      const content = fs.readFileSync(path, 'utf8');
+    if (url && fs.existsSync(url)) {
+      const content = fs.readFileSync(url, 'utf8');
       // 更新内容删除文件缓存
       if (isUpdate) {
-        delete require.cache[path];
+        delete require.cache[url];
         // 删除缓存后重新mock
-        // mockFile(path);
+        // mockFile(url);
       }
       let apiMap = {}
       try {
-        apiMap = require(path)
+        apiMap = require(url)
       } catch(err) {
         console.log('getFile error:')
         console.log(err.stack.split('\n\n')[0])
@@ -83,12 +83,12 @@ if (ui) {
     } else {
       res.send({status: 404})
     }
-  })
+  });
   app.post('/ui/file', function(req, res) {
-    const path = req.body.path;
+    const url = req.body.path;
     const value = req.body.value;
-    if (path && fs.existsSync(path)) {
-      fs.writeFile(path, value, (err) => {
+    if (url && fs.existsSync(url)) {
+      fs.writeFile(url, value, (err) => {
         if (err) {
           res.send({status: 500});
           throw err
@@ -98,11 +98,39 @@ if (ui) {
     } else {
       res.send({status: 404})
     }
-  })
+  });
+  app.post('/ui/create', function (req, res) {
+    const url = req.body.path;
+    const type = req.body.type;
+    
+    if (url && fs.existsSync(url)) {
+      res.send({status: 400, msg: 'url exists'});
+    } else {
+      if (type === 'file') {
+        const file = fs.readFileSync(path.resolve(__dirname, 'init/base.js'));
+        fs.writeFile(url, file, (err) => {
+          if (err) {
+            res.send({status: 500});
+            throw err
+          };
+          const directory = dirTree(mockDir);
+          res.send({status: 200, dir: directory});
+        });
+      } else {
+        fs.mkdir(url, { recursive: true }, (err) => {
+          if (err) {
+            res.send({status: 500});
+            throw err;
+          }
+          const directory = dirTree(mockDir);
+          res.send({status: 200, dir: directory});
+        });
+      }
+    }
+  });
 }
 
 function mockFile (filePath) {
-  console.log(filePath);
   let mock = null
   // file format error
   try {

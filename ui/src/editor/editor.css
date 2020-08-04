@@ -55,6 +55,11 @@ td, th {
 .lm-ui-folder {
   width: 200px;
 }
+.lm_folder_creator {
+  text-align: right;
+  padding-right: 8px;
+  background-color: #f7f7f7;
+}
 .lm-ui-editor {
   width: calc((100% - 200px) / 2);
   overflow-y: auto;
@@ -80,7 +85,7 @@ td, th {
   width: 5px;
   height: 100%;
   cursor: ew-resize;
-  background-color: transparent;
+  background-color: #282a36;
 }
 @keyframes rotater {
   0% {
@@ -173,4 +178,18 @@ td, th {
 }
 .v-treeview-node__level {
   width: 12px;
+}
+.v-alert {
+  position: absolute;
+  width: calc((100% - 200px) / 2 + 3px);
+  z-index: 100;
+  left: 200px;
+  /* margin-left: -50%; */
+  /* transform: translate(-50%); */
+}
+.v-text-field {
+  padding-top: 0;
+}
+.mdi-file-plus-outline::before {
+  font-size: 20px;
 }
