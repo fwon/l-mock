@@ -1,7 +1,6 @@
 (function() {
 
   let global_file_finger = null;
-  let input_timeout = null;
 
   // 获取目录结构
   function getDirectory() {
@@ -68,7 +67,6 @@
 
   var demo = new Vue({
     el: "#lm_container",
-    vuetify: new Vuetify(),
     data: {
       // v-tree
       tree: [],
@@ -96,7 +94,7 @@
       currentPath: '',
       currentFolder: null,
       hasChanged: false,
-      loadingResult: false,
+      loadingResult: 0,
       showAlert: false,
       showAlertText: '',
       showAlertType: 'warning',
@@ -189,19 +187,7 @@
       this.initResize();
     },
     methods: {
-      $alert(text, type) {
-        this.showAlertText = text;
-        this.showAlertType = type;
-        this.showAlert = true;
-        const to = setTimeout(() => {
-          clearTimeout(to);
-          this.showAlert = false;
-          // this.showAlertText = '';
-          // this.showAlertType = 'warning';
-        }, 3000);
-      },
       resetCurrentEditFile(e, item) {
-        alert(11)
         console.log(e.currentTarget.value)
         if (e.currentTarget && e.currentTarget.value) {
           const name = e.currentTarget.value;
@@ -222,14 +208,22 @@
       hideCurrentFolder(item) {
         this.currentFolder = null;
       },
-      // findInTree(children, name) {
-      //   for (let i = 0; i < children.length; i++) {
-      //     const item = children[i];
-      //     if (item.name === name) {
-
-      //     } 
-      //   }
-      // },
+      startProgress() {
+        this.loadingResult = 0;
+        this.progress_interval = setInterval(() => {
+          if (this.loadingResult < 99) {
+            this.loadingResult += 10;
+          }
+        }, 100)
+      },
+      stopProgress() {
+        clearInterval(this.progress_interval);
+        this.loadingResult = 100;
+        const to = setTimeout(() => {
+          clearTimeout(to);
+          this.loadingResult = 0;
+        }, 300);
+      },
       createFile(e, item) {
         e.stopPropagation();
         console.log(item.children)
@@ -255,18 +249,23 @@
         //   console.log(res);
         // })
       },
-      openFile(item) {
-        const path = item[0];
-        console.log(path);
-        if (path && path.indexOf('.') === -1) return; // folder
+      openFile(item, node, e) {
+        console.log(item)
+        console.log(e)
+        const path = item.path;
+        if (item.type === 'directory') return;
         if (!path || path === this.currentPath) return;
         if (path !== this.currentPath) {
           if (this.hasChanged) {
-            this.$alert('请先保存 ' + this.currentPath.split('/').pop(), 'warning');
+            // e.$el.preventDefault()
+            this.$message({
+              message: '请先保存 ' + this.currentPath.split('/').pop(),
+              type: 'warning'
+            })
             return;
           }
         }
-        this.loadingResult = false;
+        this.loadingResult = 0;
         getFile(path).done(res => {
           console.log(res);
           global_file_finger = res.finger;
@@ -397,12 +396,15 @@
       },
       postChange() {
         console.log('post Change');
-        this.loadingResult = true;
+        this.startProgress();
         this.jsonCode = '';
         const value = this.cm.getValue();
         postChange(this.currentPath, value).done(res => {
           if (res.status === 200) {
-            this.$alert('保存成功', 'success');
+            this.$message({
+              message: '保存成功',
+              type: 'success'
+            });
             this.loopToUpdateResult();
           }
         });
@@ -410,7 +412,7 @@
       loopToUpdateResult() {
         getFile(this.currentPath, true).done(res => {
           if (res.finger !== global_file_finger) {
-            this.loadingResult = false;
+            this.stopProgress();
             global_file_finger = res.finger;
             if (res.content) {
               this.updateCode(res);

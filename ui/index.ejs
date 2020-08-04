@@ -23,101 +23,115 @@
     <link rel="stylesheet" href="src/codem/addon/fold/foldgutter.css" />
     <link rel="stylesheet" href="src/codem/addon/scroll/simplescrollbars.css" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="src/editor/lib/vuetify.min.css" rel="stylesheet">
+    <!-- <link href="src/editor/lib/vuetify.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.13.2/lib/theme-chalk/index.css">
     <link rel="stylesheet" href="src/editor/editor.css">
 </head>
 <body>
   <div id="lm_container" v-cloak>
-    <v-app>
-      <div class="lm-ui">
-        <div id="lm_editor_folder" class="lm-ui-col lm-ui-folder">
-          <div id="lm_folder">
-            <v-treeview
-              :items="treeData"
-              activatable
-              hoverable
-              item-key="path"
-              open-on-click
-              @update:active="openFile"
-            >
-              <template v-slot:prepend="{ item, open }">
-                <v-icon v-if="item.type === 'directory'">
-                  {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+    <div class="lm-ui">
+      <div id="lm_editor_folder" class="lm-ui-col lm-ui-folder">
+        <div id="lm_folder">
+          <el-tree
+            :data="treeData"
+            :props="{label: 'name'}"
+            node-key="path"
+            default-expand-all
+            highlight-current
+            @node-click="openFile">
+            <div class="custom-tree-node" slot-scope="{ node, data }">
+              <i v-if="data.type === 'directory'" class="mdi mdi-folder"></i>
+              <i v-else class="mdi" :class="files[data.extension.substring(1)]"></i>
+              <span class="custom-tree-node-label" v-text="node.label"></span>
+              <span class="custom-tree-node-status" v-if="data.path === currentPath && hasChanged">M</span>
+            </div>
+          </el-tree>
+          <!-- <v-treeview
+            :items="treeData"
+            activatable
+            hoverable
+            item-key="path"
+            open-on-click
+            @update:active="openFile"
+          >
+            <template v-slot:prepend="{ item, open }">
+              <v-icon v-if="item.type === 'directory'">
+                {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+              </v-icon>
+              <v-icon v-else>
+                {{ files[item.extension.substring(1)] }}
+              </v-icon>
+            </template>
+            <template v-slot:label="{item}">
+              <v-text-field
+                hide-details
+                autofocus
+                :height="20"
+                :value="item.name"
+                @blur="(e) => resetCurrentEditFile(e, item)"
+                @submit="(e) => resetCurrentEditFile(e, item)"
+                v-if="!item.name">
+              </v-text-field>
+              <span v-else @dblclick="() => setCurrentEditFile(item)">{{ item.name }}</span>
+            </template>
+            <template v-slot:append="{item, open, active}">
+              <template v-if="item.type === 'directory' && (open || active)">
+                <v-icon @click.native="() => createFile($event, item)">
+                  mdi-file-plus-outline
                 </v-icon>
-                <v-icon v-else>
-                  {{ files[item.extension.substring(1)] }}
+                <v-icon @click.native="() => createFolder($event, item)">
+                  mdi-folder-plus
                 </v-icon>
               </template>
-              <template v-slot:label="{item}">
-                <v-text-field
-                  hide-details
-                  autofocus
-                  :height="20"
-                  :value="item.name"
-                  @blur="(e) => resetCurrentEditFile(e, item)"
-                  @submit="(e) => resetCurrentEditFile(e, item)"
-                  v-if="!item.name">
-                </v-text-field>
-                <span v-else @dblclick="() => setCurrentEditFile(item)">{{ item.name }}</span>
-              </template>
-              <template v-slot:append="{item, open, active}">
-                <template v-if="item.type === 'directory' && (open || active)">
-                  <v-icon @click.native="() => createFile($event, item)">
-                    mdi-file-plus-outline
-                  </v-icon>
-                  <v-icon @click.native="() => createFolder($event, item)">
-                    mdi-folder-plus
-                  </v-icon>
-                </template>
-                <div v-if="item.path === currentPath && hasChanged">M</div>
-              </template>
-            </v-treeview>
-          </div>
-        </div>
-        <div id="lm_editor_resize1" class="lm-drag-bar"></div>
-        <div id="lm_editor" class="lm-ui-col lm-ui-editor">
-          <codemirror
-            class="lm-editor"
-            ref="cm"
-            v-model="code"
-            :options="cmOption"
-            @blur="onCmBlur($event)"
-            @focus="onCmFocus($event)"
-            @ready="onCmReady($event)"
-            @changes="onChange"
-          ></codemirror>
-        </div>
-        <div id="lm_editor_resize2" class="lm-drag-bar"></div>
-        <div id="lm_editor_result" class="lm-ui-col lm-ui-result">
-          <div class="lm_result_progress" v-if="loadingResult">
-            <v-progress-linear
-              indeterminate
-              color="#1867c0"
-            ></v-progress-linear>
-          </div>  
-          <!-- <i class="lm-ui-result-loading mdi mdi-reload" v-if="loadingResult"></i> -->
-          <codemirror
-            class="lm-editor"
-            ref="res_cm"
-            v-model="jsonCode"
-            :options="cmResultOption"
-          ></codemirror>
+              <div v-if="item.path === currentPath && hasChanged">M</div>
+            </template>
+          </v-treeview> -->
         </div>
       </div>
-      <v-alert
-        dense
-        :icon="showAlertIcon[showAlertType]"
-        :value="showAlert"
-        :type="showAlertType"
-        transition="slide-y-transition"
-      >
-        {{showAlertText}}
-      </v-alert>
-    </v-app>
+      <div id="lm_editor_resize1" class="lm-drag-bar"></div>
+      <div id="lm_editor" class="lm-ui-col lm-ui-editor">
+        <codemirror
+          class="lm-editor"
+          ref="cm"
+          v-model="code"
+          :options="cmOption"
+          @blur="onCmBlur($event)"
+          @focus="onCmFocus($event)"
+          @ready="onCmReady($event)"
+          @changes="onChange"
+        ></codemirror>
+      </div>
+      <div id="lm_editor_resize2" class="lm-drag-bar"></div>
+      <div id="lm_editor_result" class="lm-ui-col lm-ui-result">
+        <div class="lm_result_progress" v-if="loadingResult > 0">
+          <el-progress :percentage="loadingResult" status="success"></el-progress>
+          <!-- <v-progress-linear
+            indeterminate
+            color="#1867c0"
+          ></v-progress-linear> -->
+        </div>  
+        <!-- <i class="lm-ui-result-loading mdi mdi-reload" v-if="loadingResult"></i> -->
+        <codemirror
+          class="lm-editor"
+          ref="res_cm"
+          v-model="jsonCode"
+          :options="cmResultOption"
+        ></codemirror>
+      </div>
+    </div>
+    <!-- <v-alert
+      dense
+      :icon="showAlertIcon[showAlertType]"
+      :value="showAlert"
+      :type="showAlertType"
+      transition="slide-y-transition"
+    >
+      {{showAlertText}}
+    </v-alert> -->
   </div>
   <script src="src/editor/lib/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
   <script src="src/editor/lib/vue.js"></script>
-  <script src="src/editor/lib/vuetify.js"></script>
+  <script src="https://unpkg.com/element-ui@2.13.2/lib/index.js"></script>
   <script src="src/editor/lib/vue-codemirror.js"></script>
   <script>
     const __PORT__ = "<%= PORT %>"

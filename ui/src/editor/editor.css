@@ -6,6 +6,7 @@ html, body, div, p, form, ul, ol, dl, dt, dd, h1, h2, h3, h4, h5, h6 {
 html,body{
   height: 100%;
   width: 100%;
+  font-size: 15px;
   overflow: hidden;
 }
 body {
@@ -43,6 +44,9 @@ td, th {
 }
 
 /* 编辑器 */
+#lm_container {
+  height: 100%;
+}
 .lm-ui {
   display: flex;
   flex-direction: row;
@@ -96,67 +100,27 @@ td, th {
   }
 }
 
-
-/* 目录 */
-/* .tree-list {
-  padding: 10px;
-  padding-left: 5px;
-  padding-bottom: 20px;
-}
-.item-wrap {
-  position: relative;
+.custom-tree-node {
   display: flex;
-  height: 30px;
-  flex-direction: row;
+  flex: 1;
   align-items: center;
-  user-select: none;
-  border-radius: 4px;
+  padding-right: 8px;
 }
-.item-wrap.is-file {
-  padding-left: 5px;
+.custom-tree-node-label {
+  display: flex;
+  flex: 1;
 }
-.item-wrap.active {
-  color: #1867c0 !important;
+.custom-tree-node-status {
+  color: #409EFF;
 }
-.item-wrap.active:before {
-  opacity: .12;
-}
-.item-wrap:before {
-  background-color: currentColor;
-  bottom: 0;
-  content: "";
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  border-radius: 4px;
-  transition: .3s cubic-bezier(.25,.8,.5,1);
-}
-.item-wrap:hover {
-  background-color: rgb(238,238,238, 0.5);
-}
-.item-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-}
-.item-folder-list {
-  padding-left: 22px;
-} */
 
 /* 字体 */
-/* .mdi {
+.mdi {
   color: rgba(0,0,0,.54);
   font-size: 22px;
   margin-right: 6px;
-} */
+}
 .mdi-folder, .mdi-folder-open {
-  /* font-size: 22px; */
-  /* margin-right: 6px; */
 }
 
 .lm_result_progress {
@@ -170,26 +134,16 @@ td, th {
 
 
 /* overwrite */
-.v-application {
-  line-height: 1.3;
-}
-.v-treeview-node__root {
-  min-height: 35px;
-}
-.v-treeview-node__level {
-  width: 12px;
-}
-.v-alert {
-  position: absolute;
-  width: calc((100% - 200px) / 2 + 3px);
-  z-index: 100;
-  left: 200px;
-  /* margin-left: -50%; */
-  /* transform: translate(-50%); */
-}
-.v-text-field {
-  padding-top: 0;
-}
 .mdi-file-plus-outline::before {
   font-size: 20px;
+}
+.el-tree-node__content {
+  height: 35px;
+  color: rgba(0,0,0,.87);
+}
+.el-tree-node__expand-icon {
+  color: rgba(0,0,0,.87);
+}
+.el-progress {
+  margin-top: -5px;
 }
