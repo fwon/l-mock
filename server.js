@@ -43,7 +43,7 @@ app.use(function (req, res, next) {
 })
 
 // 启动UI界面
-if (ui) {
+if (ui === 'true') {
   // static
   app.use('/ui', express.static(path.join(__dirname, 'ui')));
   app.set('views', __dirname + '/ui');
@@ -152,10 +152,15 @@ function mockFile (filePath) {
   // 启动代理
   if (target) {
     console.log(`Api ${chalk.yellow(mock.url)} use proxy ${chalk.yellow(target)}`);
-    callback = proxyMiddleware({
-      target: target, 
-      changeOrigin: true
-    })
+    callback = function(req, res) {
+      const proxy = proxyMiddleware({
+        target: target,
+        headers: req.headers,
+        changeOrigin: true
+      });
+      proxy(req, res)
+    }
+    
   // result 是自定义方法
   } else if (typeof mock.result === 'function') {
     callback = mock.result

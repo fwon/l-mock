@@ -90,6 +90,98 @@
       </div>
       <div id="lm_editor_resize1" class="lm-drag-bar"></div>
       <div id="lm_editor" class="lm-ui-col lm-ui-editor">
+        <i v-if="currentPath" class="el-icon-setting" :class="{active: dialog}" @click="showDialog"></i>
+        <el-drawer
+          id="el-drawer__wrapper"
+          :visible.sync="dialog"
+          direction="btt"
+          :modal="false"
+          size="60%"
+          custom-class="demo-drawer"
+          ref="drawer"
+          >
+          <div class="drawer__content">
+            <p style="color: #C0C4CC;font-size: 13px;">GET参数请直接拼在URL后面，POST参数在Paramaters配置</p>
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <div class="form-label">Method</div>
+              </el-col>
+              <el-col :span="10">
+                <div class="form-label">URL</div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <el-input
+                  :disabled="true"
+                  v-model="requestForm.method"
+                  autocomplete="off">
+                </el-input>
+              </el-col>
+              <el-col :span="10">
+                <el-input
+                  v-model="requestForm.url"
+                  autocomplete="off">
+                </el-input>
+              </el-col>
+              <el-col :span="10">
+                <el-button type="success" icon="el-icon-s-promotion" circle @click.native="sendRequest"></el-button>
+              </el-col>
+            </el-row>
+            <el-collapse>
+              <el-collapse-item title="Headers" name="1">
+                <div class="el-collapse-content">
+                  <el-row :key="index" :gutter="20" style="margin-bottom: 10px;" v-for="(item, index) in requestForm.headers">
+                    <el-col :span="4">
+                      <el-input
+                        :placeholder="'parameter' + (index + 1)"
+                        v-model="item.param"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="10">
+                      <el-input
+                        :placeholder="'value' + (index + 1)"
+                        v-model="item.value"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                  </el-row>
+                  <el-row :gutter="20" style="cursor: pointer;">
+                    <el-col :span="6" @click.native="addHeaderItem">
+                      <div class="form-label"><i class="el-icon-plus"></i> New Item</div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-collapse-item>
+              <el-collapse-item title="Paramaters (POST)" name="2" v-if="requestForm.params.length">
+                <div class="el-collapse-content">
+                  <el-row :key="index" :gutter="20" style="margin-bottom: 10px;" v-for="(item, index) in requestForm.params">
+                    <el-col :span="4">
+                      <el-input
+                        :placeholder="'parameter' + (index + 1)"
+                        v-model="item.param"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="10">
+                      <el-input
+                        :placeholder="'value' + (index + 1)"
+                        v-model="item.value"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                  </el-row>
+                  <el-row :gutter="20" style="cursor: pointer;">
+                    <el-col :span="6" @click.native="addParamItem">
+                      <div class="form-label"><i class="el-icon-plus"></i> New Item</div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+        </el-drawer>
         <codemirror
           class="lm-editor"
           ref="cm"
@@ -101,7 +193,7 @@
           @changes="onChange"
         ></codemirror>
       </div>
-      <div id="lm_editor_resize2" class="lm-drag-bar"></div>
+      <div id="lm_editor_resize2" class="lm-drag-bar lm-drag-bar2"></div>
       <div id="lm_editor_result" class="lm-ui-col lm-ui-result">
         <div class="lm_result_progress" v-if="loadingResult > 0">
           <el-progress :percentage="loadingResult" status="success"></el-progress>

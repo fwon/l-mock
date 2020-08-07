@@ -65,6 +65,7 @@ td, th {
   background-color: #f7f7f7;
 }
 .lm-ui-editor {
+  position: relative;
   width: calc((100% - 200px) / 2);
   overflow-y: auto;
 }
@@ -85,11 +86,24 @@ td, th {
 .lm-editor {
   height: 100%;
 }
+.form-label {
+  color: #606266;
+  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 3px;
+}
 .lm-drag-bar {
-  width: 5px;
   height: 100%;
   cursor: ew-resize;
-  background-color: #282a36;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #fff;
+}
+.lm-drag-bar2 {
+  height: 100%;
+  cursor: ew-resize;
+  border-left: 2px solid #f7f7f7;
+  border-right: 2px solid #f7f7f7;
 }
 @keyframes rotater {
   0% {
@@ -146,4 +160,50 @@ td, th {
 }
 .el-progress {
   margin-top: -5px;
+}
+.el-drawer__wrapper {
+  left: 202px;
+  width: calc((100% - 200px) / 2);
+}
+.el-drawer {
+  width: 100%;
+  overflow: auto;
+  background: #F2F6FC;
+}
+.el-icon-setting {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  z-index: 100;
+  font-size: 30px;
+  color: white;
+  cursor: pointer;
+  transform: rotate(0deg);
+  transition: all 0.5s linear;
+}
+.el-icon-setting.active {
+  transform: rotate(180deg);
+}
+.el-icon-setting::before {
+  cursor: pointer;
+}
+.el-drawer__header {
+  margin-bottom: 0;
+}
+.drawer__content {
+  padding: 20px;
+}
+.el-collapse {
+  margin-top: 20px;
+}
+.el-collapse-item__header {
+  padding-left: 20px;
+  background-color: #EBEEF5;
+  border-radius: 4px;
+}
+.el-collapse-item {
+  margin-bottom: 10px;
+}
+.el-collapse-content {
+  padding: 20px;
 }

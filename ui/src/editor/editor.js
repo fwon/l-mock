@@ -142,7 +142,20 @@
         foldOptions: {
           widget: this.foldWidget
         }
-      }
+      },
+
+      // 请求设置弹窗
+      dialog: false,
+      requestForm: {
+        method: '',
+        url: '',
+        headers: [{
+          param: '',
+          value: ''
+        }],
+        params: []
+      },
+      formLabelWidth: '80px'
     },
     computed: {
       cm() {
@@ -154,8 +167,6 @@
     },
     created() {
       getDirectory().done(res => {
-        console.log('directory')
-        console.log(res)
         this.treeData = [res.dir];
       })
     },
@@ -187,14 +198,45 @@
       this.initResize();
     },
     methods: {
+      sendRequest() {
+        const form = this.requestForm;
+        const headers = {};
+        const params = {};
+        form.headers.forEach(item => {
+          if (item.param) {
+            headers[item.param] = item.value
+          }
+        })
+        form.params.forEach(item => {
+          if (item.param) {
+            params[item.param] = item.value
+          }
+        })
+        getResult(form.url, form.method, params, headers).done(res => {
+          this.jsonCode = JSON.stringify(res, null, "\t");
+        });
+      },
+      addHeaderItem() {
+        this.requestForm.headers.push({
+          param: '',
+          value: ''
+        })
+      },
+      addParamItem() {
+        this.requestForm.params.push({
+          param: '',
+          value: ''
+        })
+      },
+      showDialog() {
+        this.dialog = true;
+      },
       resetCurrentEditFile(e, item) {
-        console.log(e.currentTarget.value)
         if (e.currentTarget && e.currentTarget.value) {
           const name = e.currentTarget.value;
           item.name = name;
           createFile(item.path + '/' + name, item.type).done(res => {
             this.treeData = [res.dir];
-            console.log(res);
           })
         }
         this.currentEditFile = null;
@@ -226,7 +268,6 @@
       },
       createFile(e, item) {
         e.stopPropagation();
-        console.log(item.children)
         item.children.unshift({
           extension: '.file',
           path: item.path,
@@ -239,7 +280,6 @@
       },
       createFolder(e, item) {
         e.stopPropagation();
-        console.log(item.children)
         item.children.unshift({
           extension: '.folder',
           path: item.path,
@@ -250,8 +290,6 @@
         // })
       },
       openFile(item, node, e) {
-        console.log(item)
-        console.log(e)
         const path = item.path;
         if (item.type === 'directory') return;
         if (!path || path === this.currentPath) return;
@@ -267,7 +305,6 @@
         }
         this.loadingResult = 0;
         getFile(path).done(res => {
-          console.log(res);
           global_file_finger = res.finger;
           // 初始化代码
           res.initialCode = true;
@@ -285,13 +322,13 @@
           if(currKey == 83 && (e.ctrlKey || e.metaKey)){
             e.preventDefault();
             this.hasChanged = false;
-            console.log('save file')
             this.postChange();
             return false;
           }
         }
       },
       initResize() {
+        const drawer = document.getElementById("el-drawer__wrapper");
         const folder = document.getElementById("lm_editor_folder");
         const resize1 = document.getElementById("lm_editor_resize1");
         const resize2 = document.getElementById("lm_editor_resize2");
@@ -311,9 +348,11 @@
             if(moveLen < 0) moveLen = 0;
             if(moveLen > maxT - 300) moveLen = maxT - 300;
       
-            resize1.style.left = moveLen;
+            resize1.style.left = moveLen + "px";
             folder.style.width = moveLen + "px";
             left.style.width = (boxWidth - moveLen - 4) + "px";
+            drawer.style.left = (moveLen + 3) + "px";
+            drawer.style.width = left.style.width;
           }
           document.onmouseup = function(evt){
             document.onmousemove = null;
@@ -336,8 +375,9 @@
             if(moveLen < 300) moveLen = 300; 
             if(moveLen > maxT - 300) moveLen = maxT - 300;
       
-            resize2.style.left = moveLen;
+            resize2.style.left = moveLen + "px";
             left.style.width = moveLen + "px";
+            drawer.style.width = left.style.width;
             right.style.width = (boxWidth - moveLen - 4) + "px";
           }
           document.onmouseup = function(evt){
@@ -375,13 +415,10 @@
       },
       onCmReady() {},
       onChange(instance, changes) {
-        console.log(changes);
         if (this.initialCode) {
           this.initialCode = false;
           return;
         }
-        console.log(instance.getValue())
-        console.log(this.baseCode)
         if(instance.getValue() !== this.baseCode) {
           this.hasChanged = true;
         } else {
@@ -395,7 +432,6 @@
         // }, 500)
       },
       postChange() {
-        console.log('post Change');
         this.startProgress();
         this.jsonCode = '';
         const value = this.cm.getValue();
@@ -427,25 +463,52 @@
           }
         })
       },
-      makeFolder(item) {
-        Vue.set(item, "children", []);
-        this.addItem(item);
-      },
-      addItem(item) {
-        item.children.push({
-          name: "new stuff"
-        });
-      },
       updateCode(res) {
         this.initialCode = res.initialCode;
         this.code = res.content;
         this.apiMap = res.api;
+        const url = this.apiMap.url;
         if (this.apiMap.status === 500) {
           this.jsonCode = this.apiMap.msg
         } else {
-          getResult(this.apiMap.url, this.apiMap.method).done(res => {
-            this.jsonCode = JSON.stringify(res, null, "\t");
-          });
+          if (!url) {
+            this.jsonCode = "{error: '文件格式错误'}"
+          // url 是正则表达式
+          } else if (url.fast_slash === false && url.fast_star === false || typeof url !== 'string') {
+            this.apiMap.url = ''
+            this.initialRequestForm(this.apiMap);
+            this.jsonCode = "{error: '请在设置面板中根据正则表达式配置URL'}"
+          // url 中有动态参数
+          } else if (url.indexOf(':') > -1) {
+            const params = [];
+            const rex = /(:[^\/]+)/g;
+            while ((m = rex.exec(url))) {
+              params.push(m[1]);
+            }
+            this.initialRequestForm(this.apiMap);
+            this.jsonCode = "{error: '请在设置面板中修改URL中的动态参数'" + params.join() + "}"
+          } else {
+            getResult(this.apiMap.url, this.apiMap.method).done(res => {
+              this.initialRequestForm(this.apiMap);
+              this.jsonCode = JSON.stringify(res, null, "\t");
+            });
+          }
+        }
+      },
+      initialRequestForm(api) {
+        const url = api.url;
+        const method = api.method && api.method.toUpperCase();
+        this.requestForm = {
+          method: method,
+          url: url,
+          headers: [{
+            param: '',
+            value: ''
+          }],
+          params: method === 'GET' ? [] : [{
+            param: '',
+            value: ''
+          }]
         }
       },
       updateCurrentPath(path) {
