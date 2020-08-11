@@ -59,10 +59,8 @@ td, th {
 .lm-ui-folder {
   width: 200px;
 }
-.lm_folder_creator {
-  text-align: right;
-  padding-right: 8px;
-  background-color: #f7f7f7;
+.lm-folder-manager i {
+  font-size: 18px;
 }
 .lm-ui-editor {
   position: relative;

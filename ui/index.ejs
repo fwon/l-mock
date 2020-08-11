@@ -16,6 +16,11 @@
     <script src="src/codem/addon/scroll/simplescrollbars.js"></script>
     <script src="src/codem/addon/lint/lint.js"></script>
     <script src="src/codem/addon/lint/javascript-lint.js"></script>
+    <script src="src/codem/addon/search/search.js"></script>
+    <script src="src/codem/addon/search/searchcursor.js"></script>
+    <script src="src/codem/keymap/sublime.js"></script>
+    <script src="src/codem/addon/edit/matchbrackets.js"></script>
+    <script src="src/codem/addon/edit/closebrackets.js"></script>
     <link rel="stylesheet" href="src/codem/lib/codemirror.css">
     <link rel="stylesheet" href="src/codem/addon/hint/show-hint.css">
     <link rel="stylesheet" href="src/codem/addon/lint/lint.css">
@@ -32,6 +37,10 @@
     <div class="lm-ui">
       <div id="lm_editor_folder" class="lm-ui-col lm-ui-folder">
         <div id="lm_folder">
+          <!-- <div class="lm-folder-manager">
+            <i class="el-icon-document-add"></i>
+            <i class="el-icon-folder-add"></i>
+          </div> -->
           <el-tree
             :data="treeData"
             :props="{label: 'name'}"
@@ -39,53 +48,17 @@
             default-expand-all
             highlight-current
             @node-click="openFile">
-            <div class="custom-tree-node" slot-scope="{ node, data }">
+            <div class="custom-tree-node" slot-scope="{ node, data }" @mouseenter="setCurrentEditFile(data)">
               <i v-if="data.type === 'directory'" class="mdi mdi-folder"></i>
               <i v-else class="mdi" :class="files[data.extension.substring(1)]"></i>
               <span class="custom-tree-node-label" v-text="node.label"></span>
+              <div v-if="data.type === 'directory' && currentEditFile === data.path" class="lm-folder-manager">
+                <i class="el-icon-document-add" @click="createFile(node, data)"></i>
+                <i class="el-icon-folder-add" @click="createFolder(node, data)"></i>
+              </div>
               <span class="custom-tree-node-status" v-if="data.path === currentPath && hasChanged">M</span>
             </div>
           </el-tree>
-          <!-- <v-treeview
-            :items="treeData"
-            activatable
-            hoverable
-            item-key="path"
-            open-on-click
-            @update:active="openFile"
-          >
-            <template v-slot:prepend="{ item, open }">
-              <v-icon v-if="item.type === 'directory'">
-                {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
-              </v-icon>
-              <v-icon v-else>
-                {{ files[item.extension.substring(1)] }}
-              </v-icon>
-            </template>
-            <template v-slot:label="{item}">
-              <v-text-field
-                hide-details
-                autofocus
-                :height="20"
-                :value="item.name"
-                @blur="(e) => resetCurrentEditFile(e, item)"
-                @submit="(e) => resetCurrentEditFile(e, item)"
-                v-if="!item.name">
-              </v-text-field>
-              <span v-else @dblclick="() => setCurrentEditFile(item)">{{ item.name }}</span>
-            </template>
-            <template v-slot:append="{item, open, active}">
-              <template v-if="item.type === 'directory' && (open || active)">
-                <v-icon @click.native="() => createFile($event, item)">
-                  mdi-file-plus-outline
-                </v-icon>
-                <v-icon @click.native="() => createFolder($event, item)">
-                  mdi-folder-plus
-                </v-icon>
-              </template>
-              <div v-if="item.path === currentPath && hasChanged">M</div>
-            </template>
-          </v-treeview> -->
         </div>
       </div>
       <div id="lm_editor_resize1" class="lm-drag-bar"></div>

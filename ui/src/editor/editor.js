@@ -92,7 +92,6 @@
       // tag
       currentEditFile: null, // 当前编辑的文件名
       currentPath: '',
-      currentFolder: null,
       hasChanged: false,
       loadingResult: 0,
       showAlert: false,
@@ -110,7 +109,9 @@
         mode:  "javascript",
         lineNumbers: true,
         theme: "dracula",
+        autoCloseBrackets: true,
         matchBrackets: true, // 括号高亮
+        showCursorWhenSelecting: true,
         tabSize: 2,
         autofocus: true,
         indentWithTabs: true,
@@ -123,6 +124,7 @@
         foldOptions: {
           widget: this.foldWidget
         },
+        keyMap: 'sublime'
         // extraKeys: {
         //  "Cmd-S": (instance) => { 
         //    console.log('save file');
@@ -173,18 +175,6 @@
     mounted() {
       this.cm.setSize("100%", "100%")
       this.res_cm.setSize("100%", "100%")
-      this.cm.addKeyMap({
-        name: 'autoInsertParentheses',
-        "'{'": cm => {
-          const cur = cm.getCursor();
-
-          cm.replaceRange('{}', cur, cur, '+insert');
-          cm.doc.setCursor({
-            line: cur.line,
-            ch: cur.ch + 1
-          })
-        }
-      })
       // show hint
       this.cm.setOption('extraKeys', {
         "'@'": () => {
@@ -242,13 +232,11 @@
         this.currentEditFile = null;
       },
       setCurrentEditFile(item) {
-        this.currentEditFile = item.path;
-      },
-      showCurrentFolder(item) {
-        this.currentFolder = item.path;
-      },
-      hideCurrentFolder(item) {
-        this.currentFolder = null;
+        if (item.type === 'directory') {
+          this.currentEditFile = item.path;
+        } else {
+          this.currentEditFile = null;
+        }
       },
       startProgress() {
         this.loadingResult = 0;
@@ -266,8 +254,7 @@
           this.loadingResult = 0;
         }, 300);
       },
-      createFile(e, item) {
-        e.stopPropagation();
+      createFile(node, item) {
         item.children.unshift({
           extension: '.file',
           path: item.path,
@@ -278,8 +265,7 @@
         //   console.log(res);
         // })
       },
-      createFolder(e, item) {
-        e.stopPropagation();
+      createFolder(node, item) {
         item.children.unshift({
           extension: '.folder',
           path: item.path,
