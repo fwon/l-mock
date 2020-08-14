@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const cors = require('cors')
 const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
+const proxyPostFix = require('coexist-parser-proxy');
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const dirTree = require('directory-tree')
@@ -31,6 +32,7 @@ app.use(cors({
   credentials: true,  // 运行上传cookie
   // preflightContinue: true // OPTIONS请求
 }))
+app.use(proxyPostFix) // bodyParser 会导致proxy的post失败
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(function (req, res, next) {
@@ -104,7 +106,7 @@ if (ui === 'true') {
     const type = req.body.type;
     
     if (url && fs.existsSync(url)) {
-      res.send({status: 400, msg: 'url exists'});
+      res.send({status: 400, msg: type === 'file' ? '文件' : '目录' + '已存在'});
     } else {
       if (type === 'file') {
         const file = fs.readFileSync(path.resolve(__dirname, 'init/base.js'));
@@ -152,13 +154,13 @@ function mockFile (filePath) {
   // 启动代理
   if (target) {
     console.log(`Api ${chalk.yellow(mock.url)} use proxy ${chalk.yellow(target)}`);
-    callback = function(req, res) {
+    callback = function(req, res, next) {
       const proxy = proxyMiddleware({
         target: target,
         headers: req.headers,
         changeOrigin: true
       });
-      proxy(req, res)
+      proxy(req, res, next)
     }
     
   // result 是自定义方法
