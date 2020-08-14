@@ -90,8 +90,10 @@
       baseCode: "", // 用于对比
       jsonCode: '',
       // tag
-      currentEditFile: null, // 当前编辑的文件名
-      currentPath: '',
+      currentEditFolder: null, // 当前编辑的文件夹
+      currentEditName: '', // 当前正在编辑的文件/文件夹名
+      currentEditing: false, // 当前有正在新建的文件/文件夹
+      currentPath: '', // 当前选中的文件/文件夹
       hasChanged: false,
       loadingResult: 0,
       showAlert: false,
@@ -221,22 +223,83 @@
       showDialog() {
         this.dialog = true;
       },
-      resetCurrentEditFile(e, item) {
-        if (e.currentTarget && e.currentTarget.value) {
-          const name = e.currentTarget.value;
-          item.name = name;
-          createFile(item.path + '/' + name, item.type).done(res => {
-            this.treeData = [res.dir];
+      // resetCurrentEditFile(e, item) {
+      //   if (e.currentTarget && e.currentTarget.value) {
+      //     const name = e.currentTarget.value;
+      //     item.name = name;
+      //     createFile(item.path + '/' + name, item.type).done(res => {
+      //       this.treeData = [res.dir];
+      //     })
+      //   }
+      //   this.currentEditFolder = null;
+      // },
+      filterTree(value, data) {
+        return !!data.name
+      },
+      setCurrentEditFolder(item) {
+        if (item.type === 'directory') {
+          this.currentEditFolder = item.path;
+        } else {
+          this.currentEditFolder = null;
+        }
+      },
+      validataFileName(name, type) {
+        console.log(name, type)
+        if (type === 'file') {
+          if (name.substr(-3) !== '.js' && name.substr(-5) !== '.json') {
+            this.$message({
+              message: '文件格式必须为 .js 或 .json',
+              type: 'warning'
+            });
+            return false
+          }
+        }
+        return true
+      },
+      blurEditName(node, data) {
+        console.log('blur data')
+        console.log(data)
+        const parent = node.parent;
+        const children = parent.data.children || parent.data;
+        // const index = children.findIndex(d => d.id === data.id);
+        // children.splice(index, 1);
+        
+        if (!this.currentEditName) {
+          this.currentEditing = false;
+          children.splice(0, 1);
+        } else {
+          if (!this.validataFileName(this.currentEditName, data.type)) return;
+          createFile(data.path + '/' + this.currentEditName, data.type).done(res => {
+            console.log(res);
+            if (res.status === 200) {
+              this.currentEditing = false;
+              children.splice(0, 1);
+              if (data.type === 'file') {
+                children.unshift({
+                  extension: '.file',
+                  path: data.path + '/' + this.currentEditName,
+                  name: this.currentEditName,
+                  type: 'file'
+                });
+              } else {
+                children.unshift({
+                  extension: '.folder',
+                  path: data.path + '/' + this.currentEditName,
+                  name: this.currentEditName,
+                  type: 'directory',
+                  children: []
+                });
+              }
+            } else {
+              this.currentEditName = '';
+              this.$message({
+                message: res.msg,
+                type: 'warning'
+              });
+            }
           })
         }
-        this.currentEditFile = null;
-      },
-      setCurrentEditFile(item) {
-        if (item.type === 'directory') {
-          this.currentEditFile = item.path;
-        } else {
-          this.currentEditFile = null;
-        }
+        // this.$refs.rf_folder.filter();
       },
       startProgress() {
         this.loadingResult = 0;
@@ -255,22 +318,26 @@
         }, 300);
       },
       createFile(node, item) {
+        if (this.currentEditing) return;
+        this.currentEditing = true;
         item.children.unshift({
           extension: '.file',
           path: item.path,
           type: 'file'
-        })
+        });
         // const name = item.name;
         // createFile(item.path, 'file').done(res => {
         //   console.log(res);
         // })
       },
       createFolder(node, item) {
+        if (this.currentEditing) return;
+        this.currentEditing = true;
         item.children.unshift({
           extension: '.folder',
           path: item.path,
           type: '"directory"'
-        })
+        });
         // createFile(item.path, 'folder').done(res => {
         //   console.log(res);
         // })
@@ -488,8 +555,8 @@
           method: method,
           url: url,
           headers: [{
-            param: '',
-            value: ''
+            param: api.contentType ? 'Content-Type': '',
+            value: api.contentType || ''
           }],
           params: method === 'GET' ? [] : [{
             param: '',

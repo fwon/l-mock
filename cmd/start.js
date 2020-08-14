@@ -3,6 +3,7 @@
  */
 
 const path = require('path')
+const fs = require('fs')
 const nodemon = require('nodemon')
 
 function start (mockDir, port, ui) {

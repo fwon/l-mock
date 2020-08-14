@@ -205,3 +205,6 @@ td, th {
 .el-collapse-content {
   padding: 20px;
 }
+.el-input.warning input {
+  border-color: orange;
+}

@@ -42,19 +42,21 @@
             <i class="el-icon-folder-add"></i>
           </div> -->
           <el-tree
+            ref="rf_folder"
             :data="treeData"
             :props="{label: 'name'}"
             node-key="path"
             default-expand-all
             highlight-current
             @node-click="openFile">
-            <div class="custom-tree-node" slot-scope="{ node, data }" @mouseenter="setCurrentEditFile(data)">
+            <div class="custom-tree-node" slot-scope="{ node, data }" @mouseenter="setCurrentEditFolder(data)">
               <i v-if="data.type === 'directory'" class="mdi mdi-folder"></i>
               <i v-else class="mdi" :class="files[data.extension.substring(1)]"></i>
-              <span class="custom-tree-node-label" v-text="node.label"></span>
-              <div v-if="data.type === 'directory' && currentEditFile === data.path" class="lm-folder-manager">
-                <i class="el-icon-document-add" @click="createFile(node, data)"></i>
-                <i class="el-icon-folder-add" @click="createFolder(node, data)"></i>
+              <span class="custom-tree-node-label" v-text="node.label" v-if="node.label"></span>
+              <el-input :class="{warning: currentEditing}" v-model="currentEditName" size="mini" autofocus @blur="blurEditName(node, data)" v-else></el-input>
+              <div v-if="data.type === 'directory' && currentEditFolder === data.path" class="lm-folder-manager">
+                <i class="el-icon-document-add" @click.stop="createFile(node, data)"></i>
+                <i class="el-icon-folder-add" @click.stop="createFolder(node, data)"></i>
               </div>
               <span class="custom-tree-node-status" v-if="data.path === currentPath && hasChanged">M</span>
             </div>
