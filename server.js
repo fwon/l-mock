@@ -205,4 +205,7 @@ function mockFile (filePath) {
 
 app.listen(port, function () {
   console.log("Mocking Api on " + `${chalk.yellow(mockDir)}` + "\nAPI host is " + `${chalk.yellow("http://localhost:" + port)}`)
+  if (ui === 'true') {
+    console.log("UI page started on " + `${chalk.yellow("http://localhost:" + port + '/ui')}`)
+  }
 })

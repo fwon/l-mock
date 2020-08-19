@@ -39,9 +39,11 @@ lmock start
 
 ## 启动参数
 `--port`: 可选，默认监听3000端口，可通过`--port`配置端口，支持多项目同时mock
+
 `--ui`: 可选，同时启动UI编辑界面
 
 访问`localhost:3000/a` 成功返回数据
+
 访问`localhost:3000/ui` 调起UI界面
 
 ## 使用说明
