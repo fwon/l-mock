@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="src/codem/lib/codemirror.js"></script>
+    <script src="src/editor/lib/jshint.js"></script>
+    <script src="src/codem/mode/javascript/javascript.js"></script>
+    <script src="src/codem/addon/hint/show-hint.js"></script>
+    <script src="src/codem/addon/selection/active-line.js"></script>
+    <script src="src/codem/addon/hint/javascript-hint.js"></script>
+    <script src="src/codem/addon/edit/matchbrackets.js"></script>
+    <script src="src/codem/addon/fold/foldcode.js"></script>
+    <script src="src/codem/addon/fold/foldgutter.js"></script>
+    <script src="src/codem/addon/fold/indent-fold.js"></script>
+    <script src="src/codem/addon/fold/brace-fold.js"></script>
+    <script src="src/codem/addon/scroll/simplescrollbars.js"></script>
+    <script src="src/codem/addon/lint/lint.js"></script>
+    <script src="src/codem/addon/lint/javascript-lint.js"></script>
+    <script src="src/codem/addon/search/search.js"></script>
+    <script src="src/codem/addon/search/searchcursor.js"></script>
+    <script src="src/codem/keymap/sublime.js"></script>
+    <script src="src/codem/addon/edit/matchbrackets.js"></script>
+    <script src="src/codem/addon/edit/closebrackets.js"></script>
+    <link rel="stylesheet" href="src/codem/lib/codemirror.css">
+    <link rel="stylesheet" href="src/codem/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="src/codem/addon/lint/lint.css">
+    <link rel="stylesheet" href="src/codem/theme/dracula.css">
+    <link rel="stylesheet" href="src/codem/addon/fold/foldgutter.css" />
+    <link rel="stylesheet" href="src/codem/addon/scroll/simplescrollbars.css" />
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- <link href="src/editor/lib/vuetify.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.13.2/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="src/editor/editor.css">
+</head>
+<body>
+  <div id="lm_container" v-cloak>
+    <div class="lm-ui">
+      <div id="lm_editor_folder" class="lm-ui-col lm-ui-folder">
+        <div id="lm_folder">
+          <!-- <div class="lm-folder-manager">
+            <i class="el-icon-document-add"></i>
+            <i class="el-icon-folder-add"></i>
+          </div> -->
+          <el-tree
+            ref="rf_folder"
+            :data="treeData"
+            :props="{label: 'name'}"
+            node-key="path"
+            default-expand-all
+            highlight-current
+            @node-click="openFile">
+            <div class="custom-tree-node" slot-scope="{ node, data }" @mouseenter="setCurrentEditFolder(data)">
+              <i v-if="data.type === 'directory'" class="mdi mdi-folder"></i>
+              <i v-else class="mdi" :class="files[data.extension.substring(1)]"></i>
+              <span class="custom-tree-node-label" v-text="node.label" v-if="node.label"></span>
+              <el-input :class="{warning: currentEditing}" v-model="currentEditName" size="mini" autofocus @blur="blurEditName(node, data)" v-else></el-input>
+              <div v-if="data.type === 'directory' && currentEditFolder === data.path" class="lm-folder-manager">
+                <i class="el-icon-document-add" @click.stop="createFile(node, data)"></i>
+                <i class="el-icon-folder-add" @click.stop="createFolder(node, data)"></i>
+              </div>
+              <span class="custom-tree-node-status" v-if="data.path === currentPath && hasChanged">M</span>
+            </div>
+          </el-tree>
+        </div>
+      </div>
+      <div id="lm_editor_resize1" class="lm-drag-bar"></div>
+      <div id="lm_editor" class="lm-ui-col lm-ui-editor">
+        <div class="lm-editor-tools">
+          <el-tooltip class="item" effect="light" content="参数配置" placement="left">
+            <i class="el-icon-setting" :class="{active: dialog}" @click="showDialog"></i>
+          </el-tooltip>
+          <el-tooltip class="item" effect="light" content="Mockjs实例" placement="left">
+            <a style="margin-top: 5px;" target="_blank" href="http://mockjs.com/examples.html">
+              <i class="el-icon-notebook-2"></i>
+            </a>
+          </el-tooltip>
+        </div>
+        <el-drawer
+          id="el-drawer__wrapper"
+          :visible.sync="dialog"
+          direction="btt"
+          :modal="false"
+          size="60%"
+          custom-class="demo-drawer"
+          ref="drawer"
+          >
+          <div class="drawer__content">
+            <p style="color: #C0C4CC;font-size: 13px;">GET参数请直接拼在URL后面，POST参数在Paramaters配置</p>
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <div class="form-label">Method</div>
+              </el-col>
+              <el-col :span="10">
+                <div class="form-label">URL</div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <el-input
+                  :disabled="true"
+                  v-model="requestForm.method"
+                  autocomplete="off">
+                </el-input>
+              </el-col>
+              <el-col :span="10">
+                <el-input
+                  v-model="requestForm.url"
+                  autocomplete="off">
+                </el-input>
+              </el-col>
+              <el-col :span="10">
+                <el-button type="success" icon="el-icon-s-promotion" round @click.native="sendRequest">Send</el-button>
+              </el-col>
+            </el-row>
+            <el-collapse>
+              <el-collapse-item title="Headers" name="1">
+                <div class="el-collapse-content">
+                  <el-row :key="index" :gutter="20" style="margin-bottom: 10px;" v-for="(item, index) in requestForm.headers">
+                    <el-col :span="4">
+                      <el-input
+                        :placeholder="'parameter' + (index + 1)"
+                        v-model="item.param"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="10">
+                      <el-input
+                        :placeholder="'value' + (index + 1)"
+                        v-model="item.value"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="2" v-if="index > 0">
+                      <i class="el-icon-delete" @click="deleteHeaderItem(index)"></i>
+                    </el-col>
+                  </el-row>
+                  <el-row :gutter="20" style="cursor: pointer;">
+                    <el-col :span="6" @click.native="addHeaderItem">
+                      <div class="form-label"><i class="el-icon-plus"></i> New Item</div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-collapse-item>
+              <el-collapse-item title="Paramaters (POST)" name="2" v-if="requestForm.params.length">
+                <el-switch
+                  style="margin-left: 20px;margin-top: 20px;"
+                  v-model="showRawInput"
+                  active-text="Raw input">
+                </el-switch>
+                <div class="el-collapse-content" v-if="showRawInput">
+                  <h3>Raw Request Body</h3>
+                  <el-input
+                    type="textarea"
+                    :autosize="{ minRows: 4 }"
+                    placeholder=""
+                    v-model="rawRequestBody">
+                  </el-input>
+                </div>
+                <div class="el-collapse-content" v-else>
+                  <h3>Parameter List</h3>
+                  <el-row :key="index" :gutter="20" style="margin-bottom: 10px;" v-for="(item, index) in requestForm.params">
+                    <el-col :span="4">
+                      <el-input
+                        :placeholder="'parameter' + (index + 1)"
+                        v-model="item.param"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="10">
+                      <el-input
+                        :placeholder="'value' + (index + 1)"
+                        v-model="item.value"
+                        autocomplete="off">
+                      </el-input>
+                    </el-col>
+                    <el-col :span="2" v-if="index > 0">
+                      <i class="el-icon-delete" @click="deleteParamItem(index)"></i>
+                    </el-col>
+                  </el-row>
+                  <el-row :gutter="20" style="cursor: pointer;">
+                    <el-col :span="6" @click.native="addParamItem">
+                      <div class="form-label"><i class="el-icon-plus"></i> New Item</div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+        </el-drawer>
+        <codemirror
+          class="lm-editor"
+          ref="cm"
+          v-model="code"
+          :options="cmOption"
+          @blur="onCmBlur($event)"
+          @focus="onCmFocus($event)"
+          @ready="onCmReady($event)"
+          @changes="onChange"
+        ></codemirror>
+      </div>
+      <div id="lm_editor_resize2" class="lm-drag-bar lm-drag-bar2"></div>
+      <div id="lm_editor_result" class="lm-ui-col lm-ui-result">
+        <div class="lm_result_progress" v-if="loadingResult > 0">
+          <el-progress :percentage="loadingResult" status="success"></el-progress>
+          <!-- <v-progress-linear
+            indeterminate
+            color="#1867c0"
+          ></v-progress-linear> -->
+        </div>  
+        <!-- <i class="lm-ui-result-loading mdi mdi-reload" v-if="loadingResult"></i> -->
+        <codemirror
+          class="lm-editor"
+          ref="res_cm"
+          v-model="jsonCode"
+          :options="cmResultOption"
+        ></codemirror>
+      </div>
+    </div>
+    <!-- <v-alert
+      dense
+      :icon="showAlertIcon[showAlertType]"
+      :value="showAlert"
+      :type="showAlertType"
+      transition="slide-y-transition"
+    >
+      {{showAlertText}}
+    </v-alert> -->
+  </div>
+  <script src="src/editor/lib/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+  <script src="src/editor/lib/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.13.2/lib/index.js"></script>
+  <script src="src/editor/lib/vue-codemirror.js"></script>
+  <script>
+    const __PORT__ = "<%= PORT %>"
+  </script>
+  <script src="src/editor/lib/utils.js"></script>
+  <script src="src/editor/lib/mock-snippets.js"></script>
+  <script src="src/editor/editor.js"></script>
+</body>
+</html>

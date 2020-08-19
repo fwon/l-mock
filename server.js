@@ -5,18 +5,22 @@ const chalk = require('chalk');
 const cors = require('cors')
 const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
+const proxyPostFix = require('coexist-parser-proxy');
 const bodyParser = require('body-parser')
 const multer = require('multer')
+const dirTree = require('directory-tree')
 const upload = multer() // for parsing multipart/form-data
 const app = express()
 const supportExtension = ['.js']
 
+const finger = Math.round(Math.random() * 100000000).toString(16); // 进程指纹，用于区分服务是否重启
 const args = process.argv.slice(2)
-let mockDir = port = null
+let mockDir = port = ui = null
 
 if (args.length) {
   mockDir = args[0]
   port = args[1]
+  ui = args[2]
 } else {
   console.log('Please run [lmock start] in mock directory')
   return;
@@ -28,6 +32,7 @@ app.use(cors({
   credentials: true,  // 运行上传cookie
   // preflightContinue: true // OPTIONS请求
 }))
+app.use(proxyPostFix) // bodyParser 会导致proxy的post失败
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(function (req, res, next) {
@@ -39,8 +44,104 @@ app.use(function (req, res, next) {
   next()
 })
 
+// 启动UI界面
+if (ui === 'true') {
+  // static
+  app.use('/ui', express.static(path.join(__dirname, 'ui')));
+  app.set('views', __dirname + '/ui');
+  app.set('view engine', 'ejs');
+  app.get('/ui', function(req, res) {
+    res.render('index', {PORT: port});
+  });
+
+  // api
+  app.get('/ui/directory', function(req, res) {
+    const directory = dirTree(mockDir)
+    res.send({dir: directory});
+  });
+  app.get('/ui/file', function(req, res) {
+    const url = req.query.path
+    const isUpdate = req.query.update
+    if (url && fs.existsSync(url)) {
+      const content = fs.readFileSync(url, 'utf8');
+      // 更新内容删除文件缓存
+      if (isUpdate) {
+        delete require.cache[url];
+        // 删除缓存后重新mock
+        // mockFile(url);
+      }
+      let apiMap = {}
+      try {
+        apiMap = require(url)
+      } catch(err) {
+        console.log('getFile error:')
+        console.log(err.stack.split('\n\n')[0])
+        apiMap = {
+          status: 500,
+          msg: err.stack.split('\n\n')[0]
+        }
+      }
+      res.send({content: content, api: apiMap, finger: finger});
+    } else {
+      res.send({status: 404})
+    }
+  });
+  app.post('/ui/file', function(req, res) {
+    const url = req.body.path;
+    const value = req.body.value;
+    if (url && fs.existsSync(url)) {
+      fs.writeFile(url, value, (err) => {
+        if (err) {
+          res.send({status: 500});
+          throw err
+        };
+        res.send({status: 200});
+      });
+    } else {
+      res.send({status: 404})
+    }
+  });
+  app.post('/ui/create', function (req, res) {
+    const url = req.body.path;
+    const type = req.body.type;
+    
+    if (url && fs.existsSync(url)) {
+      res.send({status: 400, msg: type === 'file' ? '文件' : '目录' + '已存在'});
+    } else {
+      if (type === 'file') {
+        const file = fs.readFileSync(path.resolve(__dirname, 'init/base.js'));
+        fs.writeFile(url, file, (err) => {
+          if (err) {
+            res.send({status: 500});
+            throw err
+          };
+          const directory = dirTree(mockDir);
+          res.send({status: 200, dir: directory});
+        });
+      } else {
+        fs.mkdir(url, { recursive: true }, (err) => {
+          if (err) {
+            res.send({status: 500});
+            throw err;
+          }
+          const directory = dirTree(mockDir);
+          res.send({status: 200, dir: directory});
+        });
+      }
+    }
+  });
+}
+
 function mockFile (filePath) {
-  const mock = require(filePath)
+  let mock = null
+  // file format error
+  try {
+    mock = require(filePath)
+  } catch(err) {
+    console.log('mock file error')
+    console.log(err)
+    return
+  }
   const dataType = mock.dataType
   const target = mock.product || mock.test
   let method = mock.method && mock.method.toLowerCase() || 'get'
@@ -53,10 +154,15 @@ function mockFile (filePath) {
   // 启动代理
   if (target) {
     console.log(`Api ${chalk.yellow(mock.url)} use proxy ${chalk.yellow(target)}`);
-    callback = proxyMiddleware({
-      target: target, 
-      changeOrigin: true
-    })
+    callback = function(req, res, next) {
+      const proxy = proxyMiddleware({
+        target: target,
+        headers: req.headers,
+        changeOrigin: true
+      });
+      proxy(req, res, next)
+    }
+    
   // result 是自定义方法
   } else if (typeof mock.result === 'function') {
     callback = mock.result
@@ -68,7 +174,7 @@ function mockFile (filePath) {
         let jsonpCallbackName = req.query.callback || 'callback'
         res.send(jsonpCallbackName + '(' + JSON.stringify(data) + ')')
       } else {
-        res.send(data)  
+        res.send(data)
       }
     }
   }

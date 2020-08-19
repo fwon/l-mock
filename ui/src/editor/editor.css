@@ -1,0 +1,243 @@
+/* reset */
+/* 初始化浏览器默认值 */
+html, body, div, p, form, ul, ol, dl, dt, dd, h1, h2, h3, h4, h5, h6 {
+	padding: 0;margin: 0;
+}
+html,body{
+  height: 100%;
+  width: 100%;
+  font-size: 15px;
+  overflow: hidden;
+}
+body {
+	scroll-behavior: smooth; word-break:break-word;word-wrap:break-word;margin: 0 auto;
+	-webkit-tap-highlight-color:rgba(0,0,0,0);
+	-webkit-text-size-adjust: none;
+	-webkit-overflow-scrolling: touch;
+}
+ul, ol {
+	list-style: none;
+}
+input[type=number]::-webkit-inner-spin-button,  
+input[type=number]::-webkit-outer-spin-button { 
+	-webkit-appearance: none; appearance: none; margin: 0; 
+}
+label {
+	cursor: pointer;
+}
+input[type="radio"], input[type="checkbox"] {
+	margin: 0 3px;
+}
+/* for modern browsers */
+img {
+	border: none; vertical-align: middle;
+}
+table {
+	border-collapse: collapse;
+}
+td, th {
+	text-align: center;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+  height: 8px;
+  background-color: #f2f2f2;
+}
+::-webkit-scrollbar-thumb {
+    background: #aaa; 
+}
+::-webkit-input-placeholder{
+	color: #D8DCDC;
+}
+
+.CodeMirror-simplescroll-vertical {
+  width: 3px;
+}
+
+/* 编辑器 */
+#lm_container {
+  height: 100%;
+}
+.lm-ui {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+.lm-ui-col {
+  height: 100%;
+  overflow-y: auto;
+}
+.lm-ui-folder {
+  width: 200px;
+}
+.lm-folder-manager i {
+  font-size: 18px;
+}
+.lm-ui-editor {
+  position: relative;
+  width: calc((100% - 200px) / 2);
+  overflow-y: auto;
+}
+.lm-editor-tools {
+  display: flex;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: transparent;
+  padding: 10px 5px;
+  z-index: 100;
+  flex-direction: column;
+  opacity: 0.5;
+  border-radius: 4px;
+}
+.lm-editor-tools:hover {
+  opacity: 1;
+  background-color: rgba(0,0,0,0.2);
+}
+.lm-ui-result {
+  position: relative;
+  width: calc((100% - 200px) / 2);
+}
+.lm-ui-result-loading {
+  position: absolute;
+  top: 5px;
+  left: 50px;
+  z-index: 99;
+}
+.lm-ui-result-loading::before {
+  transform-origin: center center;
+  animation: rotater 0.5s infinite linear;
+}
+.lm-editor {
+  height: 100%;
+}
+.form-label {
+  color: #606266;
+  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 3px;
+}
+.lm-drag-bar {
+  height: 100%;
+  cursor: ew-resize;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #fff;
+}
+.lm-drag-bar2 {
+  height: 100%;
+  cursor: ew-resize;
+  border-left: 2px solid #f7f7f7;
+  border-right: 2px solid #f7f7f7;
+}
+@keyframes rotater {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.custom-tree-node {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding-right: 8px;
+}
+.custom-tree-node-label {
+  display: flex;
+  flex: 1;
+}
+.custom-tree-node-status {
+  color: #409EFF;
+}
+
+/* 字体 */
+.mdi {
+  color: rgba(0,0,0,.54);
+  font-size: 22px;
+  margin-right: 6px;
+}
+
+.lm_result_progress {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 100%;
+  z-index: 9;
+  height: 5px;
+}
+
+
+/* overwrite */
+.mdi-file-plus-outline::before {
+  font-size: 20px;
+}
+.el-tree-node__content {
+  height: 35px;
+  color: rgba(0,0,0,.87);
+}
+.el-tree-node__expand-icon {
+  color: rgba(0,0,0,.87);
+}
+.el-progress {
+  margin-top: -5px;
+}
+.el-drawer__wrapper {
+  left: 202px;
+  width: calc((100% - 200px) / 2);
+}
+.el-drawer {
+  width: 100%;
+  overflow: auto;
+  background: #F2F6FC;
+  outline: none;
+}
+.el-icon-setting, .el-icon-notebook-2 {
+  font-size: 30px;
+  color: white;
+  cursor: pointer;
+  transform: rotate(0deg);
+  transition: all 0.5s linear;
+}
+.el-icon-setting.active {
+  transform: rotate(180deg);
+}
+.el-icon-setting::before {
+  cursor: pointer;
+}
+.el-drawer__header {
+  margin-bottom: 0;
+}
+.drawer__content {
+  padding: 20px;
+}
+.el-collapse {
+  margin-top: 20px;
+}
+.el-collapse-item__header {
+  padding-left: 20px;
+  background-color: #EBEEF5;
+  border-radius: 4px;
+}
+.el-collapse-item {
+  margin-bottom: 10px;
+}
+.el-collapse-content {
+  padding: 20px;
+}
+.el-collapse-content h3 {
+  margin-bottom: 10px;
+}
+.el-input.warning input {
+  border-color: orange;
+}
+.el-icon-delete {
+  font-size: 24px;
+  margin-top: 8px;
+}
+.el-tooltip {
+  outline: none;
+}

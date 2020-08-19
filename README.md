@@ -36,10 +36,13 @@ cd mock
 ```
 lmock start
 ```
-> 默认监听3000端口，可通过`--port`配置端口，支持多项目同时mock
 
+## 启动参数
+`--port`: 可选，默认监听3000端口，可通过`--port`配置端口，支持多项目同时mock
+`--ui`: 可选，同时启动UI编辑界面
 
 访问`localhost:3000/a` 成功返回数据
+访问`localhost:3000/ui` 调起UI界面
 
 ## 使用说明
 
@@ -96,7 +99,7 @@ module.exports = {
 }
 ```
 
-### 2. 自定义函数
+### 3. 自定义函数
 ```javascript
 /*
   用户可以自定义返回函数，采用express语法
@@ -117,7 +120,7 @@ module.exports = {
   }
 }
 ```
-### 3. 动态Mock和文件读取
+### 4. 动态Mock和文件读取
 ```javascript
 /*
   demo c: url 请求接口支持动态url参数，:id
@@ -140,6 +143,27 @@ module.exports = {
   }
 }
 ```
+### 5. 代理接口
+```javascript
+/*
+  将API接口请求代理到远端服务器接口 http://remote.domain.com，解决远端接口跨域问题
+ */
+
+module.exports = {
+  url: '/e',
+  method: 'post',
+  test: 'http://remote.domain.com',
+  result: {}
+}
+```
+
+## UI操作界面
+2.0版本新增UI操作界面，支持特性：
+1. 输入提示；输入`@`会自动提示Mockjs的变量语法，不用频繁查询API文档
+2. 预览请求结果；保存代码可实时查看接口返回的数据格式
+3. 支持动态配置请求参数；类似postman的功能，便于调试参数或代理接口
+
+![lmock-ui](https://raw.githubusercontent.com/fwon/blog/master/assets/lmock-ui.png)
 
 ## 项目快速配置
 工具也可以只安装在项目中作为开发依赖，不用全局安装

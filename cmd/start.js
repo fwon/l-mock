@@ -3,9 +3,10 @@
  */
 
 const path = require('path')
+const fs = require('fs')
 const nodemon = require('nodemon')
 
-function start (mockDir, port) {
+function start (mockDir, port, ui) {
   const entry = path.join(__dirname, '../server.js')
   const options = {
     script: entry,
@@ -14,7 +15,7 @@ function start (mockDir, port) {
       entry,
       mockDir
     ],
-    args: [`${mockDir}`, `${port}`],
+    args: [`${mockDir}`, `${port}`, `${ui}`],
     verbose: true
   }
 

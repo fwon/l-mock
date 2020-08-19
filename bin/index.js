@@ -38,7 +38,8 @@ const runCommand = (commands, options = []) => {
       //   break;
       case 'start':
         const port = /\-\-port\|(\d+)(?:\||$)/.test(args) ? ~~RegExp.$1 : 3000;
-        cmdStart(mockDir, port)
+        const ui = /\-\-ui(?:\||$)/.test(args) ? true : false;
+        cmdStart(mockDir, port, ui)
         break;
       default:
         console.log(`Command ${command} not found, Please check local-mock --help`)
