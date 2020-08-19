@@ -65,7 +65,16 @@
       </div>
       <div id="lm_editor_resize1" class="lm-drag-bar"></div>
       <div id="lm_editor" class="lm-ui-col lm-ui-editor">
-        <i v-if="currentPath" class="el-icon-setting" :class="{active: dialog}" @click="showDialog"></i>
+        <div class="lm-editor-tools">
+          <el-tooltip class="item" effect="light" content="参数配置" placement="left">
+            <i class="el-icon-setting" :class="{active: dialog}" @click="showDialog"></i>
+          </el-tooltip>
+          <el-tooltip class="item" effect="light" content="Mockjs实例" placement="left">
+            <a style="margin-top: 5px;" target="_blank" href="http://mockjs.com/examples.html">
+              <i class="el-icon-notebook-2"></i>
+            </a>
+          </el-tooltip>
+        </div>
         <el-drawer
           id="el-drawer__wrapper"
           :visible.sync="dialog"

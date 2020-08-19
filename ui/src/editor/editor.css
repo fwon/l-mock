@@ -79,6 +79,22 @@ td, th {
   width: calc((100% - 200px) / 2);
   overflow-y: auto;
 }
+.lm-editor-tools {
+  display: flex;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: transparent;
+  padding: 10px 5px;
+  z-index: 100;
+  flex-direction: column;
+  opacity: 0.5;
+  border-radius: 4px;
+}
+.lm-editor-tools:hover {
+  opacity: 1;
+  background-color: rgba(0,0,0,0.2);
+}
 .lm-ui-result {
   position: relative;
   width: calc((100% - 200px) / 2);
@@ -179,11 +195,7 @@ td, th {
   background: #F2F6FC;
   outline: none;
 }
-.el-icon-setting {
-  position: absolute;
-  right: 10px;
-  top: 5px;
-  z-index: 100;
+.el-icon-setting, .el-icon-notebook-2 {
   font-size: 30px;
   color: white;
   cursor: pointer;
@@ -225,4 +237,7 @@ td, th {
 .el-icon-delete {
   font-size: 24px;
   margin-top: 8px;
+}
+.el-tooltip {
+  outline: none;
 }
