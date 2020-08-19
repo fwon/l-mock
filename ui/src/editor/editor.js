@@ -159,7 +159,9 @@
         }],
         params: []
       },
-      formLabelWidth: '80px'
+      formLabelWidth: '80px',
+      showRawInput: false,
+      rawRequestBody: ''
     },
     computed: {
       cm() {
@@ -193,19 +195,26 @@
       sendRequest() {
         const form = this.requestForm;
         const headers = {};
-        const params = {};
+        let params = {};
         form.headers.forEach(item => {
           if (item.param) {
-            headers[item.param] = item.value
+            headers[item.param] = item.value;
           }
         })
-        form.params.forEach(item => {
-          if (item.param) {
-            params[item.param] = item.value
-          }
-        })
+        if (this.showRawInput) {
+          params = this.rawRequestBody;
+        } else {
+          form.params.forEach(item => {
+            if (item.param) {
+              params[item.param] = item.value
+            }
+          })
+        }
         getResult(form.url, form.method, params, headers).done(res => {
           this.jsonCode = JSON.stringify(res, null, "\t");
+        }).catch(res => {
+          const result = res.responseJSON || res.responseText;
+          this.jsonCode = JSON.stringify(result, null, "\t");
         });
       },
       addHeaderItem() {
@@ -214,11 +223,17 @@
           value: ''
         })
       },
+      deleteHeaderItem(index) {
+        this.requestForm.headers.splice(index, 1);
+      },
       addParamItem() {
         this.requestForm.params.push({
           param: '',
           value: ''
         })
+      },
+      deleteParamItem(index) {
+        this.requestForm.params.splice(index, 1);
       },
       showDialog() {
         this.dialog = true;
@@ -244,7 +259,6 @@
         }
       },
       validataFileName(name, type) {
-        console.log(name, type)
         if (type === 'file') {
           if (name.substr(-3) !== '.js' && name.substr(-5) !== '.json') {
             this.$message({
@@ -257,8 +271,6 @@
         return true
       },
       blurEditName(node, data) {
-        console.log('blur data')
-        console.log(data)
         const parent = node.parent;
         const children = parent.data.children || parent.data;
         // const index = children.findIndex(d => d.id === data.id);
@@ -270,7 +282,6 @@
         } else {
           if (!this.validataFileName(this.currentEditName, data.type)) return;
           createFile(data.path + '/' + this.currentEditName, data.type).done(res => {
-            console.log(res);
             if (res.status === 200) {
               this.currentEditing = false;
               children.splice(0, 1);
@@ -325,10 +336,6 @@
           path: item.path,
           type: 'file'
         });
-        // const name = item.name;
-        // createFile(item.path, 'file').done(res => {
-        //   console.log(res);
-        // })
       },
       createFolder(node, item) {
         if (this.currentEditing) return;
@@ -338,9 +345,6 @@
           path: item.path,
           type: '"directory"'
         });
-        // createFile(item.path, 'folder').done(res => {
-        //   console.log(res);
-        // })
       },
       openFile(item, node, e) {
         const path = item.path;

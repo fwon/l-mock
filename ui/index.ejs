@@ -100,7 +100,7 @@
                 </el-input>
               </el-col>
               <el-col :span="10">
-                <el-button type="success" icon="el-icon-s-promotion" circle @click.native="sendRequest"></el-button>
+                <el-button type="success" icon="el-icon-s-promotion" round @click.native="sendRequest">Send</el-button>
               </el-col>
             </el-row>
             <el-collapse>
@@ -121,6 +121,9 @@
                         autocomplete="off">
                       </el-input>
                     </el-col>
+                    <el-col :span="2" v-if="index > 0">
+                      <i class="el-icon-delete" @click="deleteHeaderItem(index)"></i>
+                    </el-col>
                   </el-row>
                   <el-row :gutter="20" style="cursor: pointer;">
                     <el-col :span="6" @click.native="addHeaderItem">
@@ -130,7 +133,22 @@
                 </div>
               </el-collapse-item>
               <el-collapse-item title="Paramaters (POST)" name="2" v-if="requestForm.params.length">
-                <div class="el-collapse-content">
+                <el-switch
+                  style="margin-left: 20px;margin-top: 20px;"
+                  v-model="showRawInput"
+                  active-text="Raw input">
+                </el-switch>
+                <div class="el-collapse-content" v-if="showRawInput">
+                  <h3>Raw Request Body</h3>
+                  <el-input
+                    type="textarea"
+                    :autosize="{ minRows: 4 }"
+                    placeholder=""
+                    v-model="rawRequestBody">
+                  </el-input>
+                </div>
+                <div class="el-collapse-content" v-else>
+                  <h3>Parameter List</h3>
                   <el-row :key="index" :gutter="20" style="margin-bottom: 10px;" v-for="(item, index) in requestForm.params">
                     <el-col :span="4">
                       <el-input
@@ -145,6 +163,9 @@
                         v-model="item.value"
                         autocomplete="off">
                       </el-input>
+                    </el-col>
+                    <el-col :span="2" v-if="index > 0">
+                      <i class="el-icon-delete" @click="deleteParamItem(index)"></i>
                     </el-col>
                   </el-row>
                   <el-row :gutter="20" style="cursor: pointer;">
