@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const cors = require('cors')
 const Mock = require('mockjs')
 const proxyMiddleware = require('http-proxy-middleware')
-const proxyPostFix = require('coexist-parser-proxy');
+// const proxyPostFix = require('coexist-parser-proxy');
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const dirTree = require('directory-tree')
@@ -15,10 +15,11 @@ const supportExtension = ['.js']
 
 const finger = Math.round(Math.random() * 100000000).toString(16); // 进程指纹，用于区分服务是否重启
 const args = process.argv.slice(2)
-let mockDir = port = ui = null
+let mockDir = mockApiDir = port = ui = null
 
 if (args.length) {
   mockDir = args[0]
+  mockApiDir = path.resolve(mockDir, 'api')
   port = args[1]
   ui = args[2]
 } else {
@@ -32,7 +33,7 @@ app.use(cors({
   credentials: true,  // 运行上传cookie
   // preflightContinue: true // OPTIONS请求
 }))
-app.use(proxyPostFix) // bodyParser 会导致proxy的post失败
+// app.use(proxyPostFix) // bodyParser 会导致proxy的post失败
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(function (req, res, next) {
@@ -132,6 +133,17 @@ if (ui === 'true') {
   });
 }
 
+var restream = function(proxyReq, req, res, options) {
+  if (req.body) {
+      let bodyData = JSON.stringify(req.body);
+      // incase if content-type is application/x-www-form-urlencoded -> we need to change to application/json
+      proxyReq.setHeader('Content-Type','application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      // stream the content
+      proxyReq.write(bodyData);
+  }
+}
+
 function mockFile (filePath) {
   let mock = null
   // file format error
@@ -158,7 +170,8 @@ function mockFile (filePath) {
       const proxy = proxyMiddleware({
         target: target,
         headers: req.headers,
-        changeOrigin: true
+        changeOrigin: true,
+        onProxyReq: restream
       });
       proxy(req, res, next)
     }
@@ -201,10 +214,10 @@ function mockFile (filePath) {
       })
     })
   })
-})(mockDir)
+})(mockApiDir)
 
 app.listen(port, function () {
-  console.log("Mocking Api on " + `${chalk.yellow(mockDir)}` + "\nAPI host is " + `${chalk.yellow("http://localhost:" + port)}`)
+  console.log("Mocking Api on " + `${chalk.yellow(mockApiDir)}` + "\nAPI host is " + `${chalk.yellow("http://localhost:" + port)}`)
   if (ui === 'true') {
     console.log("UI page started on " + `${chalk.yellow("http://localhost:" + port + '/ui')}`)
   }
