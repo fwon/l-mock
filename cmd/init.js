@@ -2,41 +2,9 @@
   初始化mock目录
  */
 
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const ora = require('ora')
-
-function copyFileSync( source, target ) {
-  var targetFile = target;
-
-  if (fs.existsSync(target)) {
-    if (fs.lstatSync(target).isDirectory()) {
-      targetFile = path.join(target, path.basename(source))
-    }
-  }
-
-  fs.writeFileSync(targetFile, fs.readFileSync(source))
-}
-
-function copyFolderRecursiveSync( source, target ) {
-  var files = []
-
-  if ( !fs.existsSync(target)) {
-    fs.mkdirSync(target)
-  }
-
-  if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source)
-    files.forEach(function (file) {
-      var curSource = path.join(source, file)
-      if (fs.lstatSync(curSource).isDirectory()) {
-        copyFolderRecursiveSync(curSource, target)
-      } else {
-        copyFileSync(curSource, target)
-      }
-    })
-  }
-}
 
 function init (mockDir, dir) {
   const target = path.join(mockDir, dir)
@@ -47,9 +15,14 @@ function init (mockDir, dir) {
     spinner.fail()
     return
   }
-  copyFolderRecursiveSync(source, target)
-  spinner.text = 'Mock Data initial succeed!'
-  spinner.succeed()
+  try {
+    fs.copySync(source, target)
+    spinner.text = 'Mock Data initial succeed!'
+    spinner.succeed()
+  } catch (err) {
+    spinner.text = err
+    spinner.fail()
+  }
 }
 
 module.exports = init
